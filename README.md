@@ -9,6 +9,6 @@ To replicate Fig1 on empirical data, the script is in Make_figs.R file.
 
 For the **simulations** there are 2 scripts: one of functions (Stoichio_function.R) and the other for the different analysis made (Stoichio_main.R). Once simulations are generated, figures can be made using Make_figs.R 
 
-All simulations are fast to run (5-10 min each) using the *DifferentialEquation* package from Julia. 
+All simulations are fast to run (5-10 min each) thanks to the *DifferentialEquation* package from Julia. Therefore, Julia needs to be installed on the computer which run the simulations.
 
 For more details, see the preprint: Quality matters: stoichiometry of resources modulates spatial feedbacks in an aquatic-terrestrial meta-ecosystem. Benoît Pichon, Elisa Thébault, Gérard Lacroix et Isabelle Gounand *in prep*.
