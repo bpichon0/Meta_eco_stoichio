@@ -1122,6 +1122,218 @@ ggsave(paste0("./Figures/SI/Feedback_DC.pdf"),p_feedback_dc,width = 12,height = 
 
 
 
+## Transient increase coupling ----
+ode_metaecosystem=function(t,state,param){
+  "Main function for the meta-ecosystem model"
+  
+  names(state)=c("H","HN","C","CN","P","PN","B",'BN',"DCt","DNt","DCa","DNa","Nt","Na")
+  
+  
+  iT = param$pulse_T(t)
+  iA = param$pulse_A(t)
+  
+  with (as.list(c(state, param)),{
+    
+    
+    
+    fH      = aH*P*H
+    fP      = aP*Nt*P
+    fC      = aC*B*C
+    fBN     = aBN*Na
+    fBD     = aBD*DCa
+    
+    if (colim==T) {immo    = ((rB-(DNa/DCa))/rB)*eB*fBD*fBN
+    } else{immo    = min(((rB-(DNa/DCa))/rB)*eB*fBD,fBN)}
+    
+    decompo = immo/((rB-(DNa/DCa))/rB)
+    
+    #green ecosystem
+    d_H   = eH*fH   -  dH*H
+    d_HN  = rH*eH*fH-  rH*dH*H
+    
+    d_P   = fP      -  fH     -  dP*P
+    d_PN  = rP*fP   -  rP*fH  -  rP*dP*P
+    
+    d_DNt = IDt*(DNt/DCt)    -   lDt*DNt          +
+      rH*dH*H*(1-(iT+pH))   +   rP*dP*P*(1-(iT+pP))   -     mt*DNt               +             
+      rC*dC*C*(iA+pC)       +   rB*dB*B*(iA+pB)                                     
+    
+    d_DCt = IDt              -   lDt*DCt          +
+      dH*H*(1-(iT+pH))      +   dP*P*(1-(iT+pP))      -     mt*DCt               +             
+      dC*C*(iA+pC)          +   dB*B*(iA+pB)                                        
+    
+    d_Nt  = INt   -  lNt*Nt  -   rP*fP                                       +
+      (rP-eH*rH)*fH*(1-(iT+pH))                  +     (rB-eC*rC)*fC*(iA+pC)     +             
+      mt*DNt                                                  
+    
+    
+    #brown ecosystem
+    d_C    = eC*fC            -  dC*C
+    d_CN   = rC*eC*fC         -  rC*dC*C
+    
+    d_BC   = decompo          -  fC                -  dB*B    - ma*B
+    
+    d_BN   = immo*rB          +  decompo*(DNa/DCa) -  fC*rB   - dB*B*rB  -  ma*B*rB
+    
+    d_DNa  = IDa*(DNa/DCa)    -  lDa*DNa           +
+      rC*dC*C*(1-(iA+pC))   +  rB*dB*B*(1-(iA+pB))    -  decompo*(DNa/DCa)  +      
+      rH*dH*H*(iT+pH)       +  rP*dP*P*(iT+pP)                                     
+    
+    d_DCa  = IDa              -  lDa*DCa           +
+      dC*C*(1-(iA+pC))      +  dB*B*(1-(iA+pB))       -  decompo            +      
+      dH*H*(iT+pH)          +  dP*P*(iT+pP)                                        
+    
+    d_Na  = INa   -  lNa*Na   -  immo*rB              +
+      (rB-eC*rC)*fC*(1-(iA+pC))             +  ma*B*rB            +      
+      (rP-eH*rH)*fH*(iT+pH)                                              
+    
+    list(c(    Herbivores_C  = d_H    ,  Herbivores_N  = d_HN ,
+               Consumers_C   = d_C    ,  Consumers_N   = d_CN ,
+               Plants_C      = d_P    ,  Plants_N      = d_PN ,
+               Decomposers_C = d_BC   ,  Decomposers_N = d_BN ,
+               Detritus_T_C  = d_DCt  ,  Detritus_T_N  = d_DNt, 
+               Detritus_A_C  = d_DCa  ,  Detritus_A_N  = d_DNa,
+               Nitrogen_T    = d_Nt   ,  Nitrogen_A    = d_Na  ))
+  })
+  
+}
+
+
+
+
+
+
+data_change=function(data){
+  colors = c("Consumers" = "darkorange", "Producers" = "green3", "Nitrogen" = "darkorchid2")
+  
+  the_theme=theme_classic()+theme(legend.position = "bottom",
+                                  strip.background = element_rect(fill = "#CCE8D8"),
+                                  strip.text.y = element_text(size = 10, angle = -90, face = "italic"),
+                                  strip.text.x = element_text(size = 10, face = "italic"),
+                                  legend.text = element_text(size = 10))
+  
+  data=gather(data,variable, value,-Time)
+  data$foodweb=Get_foodweb(data$variable); data$trophic_level=Get_trophic_level(data$variable)
+  return(data)
+}
+
+
+colors = c("Consumers" = "darkorange", "Producers" = "green3")
+
+Get_transient_dynamics=function(way="T",phi=0,limitation="C-limited",NCplant=.025,NCdecomp=.12){
+  
+  # reaching equilibrium
+  param=Get_classical_param(scena =limitation,coupling = T)
+  param[c("pP","pH","pC","pB")]=phi
+  param["rB"]=NCdecomp
+  param["rP"]=NCplant
+  state=Get_initial_values(param)
+  
+  param$pulse_T <- function(t_) {
+    i_M_t = ifelse(t_ > 10 & t_ <= (20), 0, 0)
+    return(i_M_t)
+  }
+  param$pulse_A <- function(t_) {
+    i_M_t = ifelse(t_ > 10 & t_ <= (20), 0, 0)
+    return(i_M_t)
+  }
+  
+  
+  data_save=as.data.frame(ode(y = state,times = 1:10000,parms = param,method = "lsoda",func = ode_metaecosystem))
+  
+  colnames(data_save)=c("Time","Herbivores_C","Herbivores_N","Consumers_C","Consumers_N","Plants_C",
+                        "Plants_N","Decomposers_C","Decomposers_N","Detritus_T_C","Detritus_T_N",
+                        "Detritus_A_C","Detritus_A_N","Nitrogen_T_N","Nitrogen_A_N")
+  
+  # plot_dynamics(data_save)
+  
+  Eq1=Extract_equilibrium_from_dynamics(data_save,param)$Eq #Equilibrium
+  
+  
+  # perturbing the spatial flows
+  state[1:14]=as.numeric(Eq1[1:14])
+  
+  if (way =="T"){
+    param$pulse_T <- function(t_) {
+      i_M_t = ifelse(t_ > 100 & t_ <= (200), 1e-1, 0)
+      return(i_M_t)
+    }
+    param$pulse_A <- function(t_) {
+      i_M_t = ifelse(t_ > 100 & t_ <= (200), 0, 0)
+      return(i_M_t)
+    }
+    
+    
+  }else {
+    
+    param$pulse_T <- function(t_) {
+      i_M_t = ifelse(t_ > 100 & t_ <= (200), 0, 0)
+      return(i_M_t)
+    }
+    param$pulse_A <- function(t_) {
+      i_M_t = ifelse(t_ > 100 & t_ <= (200), 1e-1, 0)
+      return(i_M_t)
+    }
+    
+  }
+  
+  data_save=as.data.frame(ode(y = state,times = 1:500,parms = param,method = "lsoda",func = ode_metaecosystem))
+  colnames(data_save)=c("Time","Herbivores_C","Herbivores_N","Consumers_C","Consumers_N","Plants_C",
+                        "Plants_N","Decomposers_C","Decomposers_N","Detritus_T_C","Detritus_T_N",
+                        "Detritus_A_C","Detritus_A_N","Nitrogen_T_N","Nitrogen_A_N")
+  
+  data_save=data_save[,c(1:2,4,6,8,10:15)]
+  data_save[,-1]=scale(data_save[,-1])
+  
+  data_save=data_change(data_save)%>%
+    filter(foodweb==ifelse(way=="T","Aquatic","Terrestrial"),variable %in% c("Herbivores_C","Plants_C",
+                                                                             "Decomposers_C","Consumers_C"))%>%
+    mutate(., foodweb=recode_factor(foodweb,"Aquatic"="Aquatic ecosystem","Terrestrial" = "Terrestrial ecosystem"))
+  
+  p=ggplot(data_save)+
+    geom_line(aes(x=Time,y=value,color=trophic_level),lwd=1)+
+    geom_rect(data=tibble(xmin=100,xmax=200,ymin=min(data_save$value)-.75,ymax=min(data_save$value)-.5),
+              aes(xmin=xmin,ymin=ymin,xmax=xmax,ymax=ymax),fill="#61CBFD")+
+    labs(x="Time",y="Scaled densities",color="")+scale_color_manual(values=colors)+
+    facet_grid(.~foodweb)+the_theme+xlim(0,400)+
+    theme(strip.text.x = element_text(size=12),legend.text = element_text(size=15))+
+    guides(color = guide_legend(override.aes = list(size = 10)))
+  
+  return(p)
+}
+
+param_for_plot=tibble(way=c("T","A","T","T","T","T","T","T","T"),
+                      phi=c(.5,.5,0,0,0,0,0,.5,.9),
+                      NCp=c(.025,.025,.025,.025,.1,.1,.1,.1,.1),
+                      NCd=c(.12,.12,.12,.25,.12,.25,.25,.25,.25),
+                      limitation=c("C-limited","C-limited","N-limited","N-limited","N-limited","N-limited","N-limited","N-limited","N-limited"))
+
+
+for (i in 1:nrow(param_for_plot)){
+  assign(paste0("p_",i),Get_transient_dynamics(way=param_for_plot$way[i],phi = param_for_plot$phi[i],
+                                               limitation = param_for_plot$limitation[i],
+                                               NCplant = param_for_plot$NCp[i],NCdecomp = param_for_plot$NCd[i]))
+  
+}
+
+p_tot=ggarrange(ggarrange(p_1,p_2,ncol = 2,nrow = 1,legend = "none",labels=c(letters[1],"")),
+                ggarrange(p_3+ggtitle(TeX("$r_B = 0.12, r_P = 0.025$")),p_4+ggtitle(TeX("$r_B = 0.25, r_P = 0.025$"))+
+                            theme(axis.title.y = element_blank()),
+                          p_5+ggtitle(TeX("$r_B = 0.12, r_P = 0.1$")),p_6+ggtitle(TeX("$r_B = 0.25, r_P = 0.1$"))+
+                            theme(axis.title.y = element_blank()),
+                          nrow = 2,ncol = 2,labels = c(letters[2],"","",""),legend = "none"),
+                ggarrange(p_7+ggtitle(TeX("$\\phi_X = 0$")),p_8+ggtitle(TeX("$\\phi_X = 0.5$"))+theme(axis.title.y = element_blank()),
+                          p_9+ggtitle(TeX("$\\phi_X = 0.9$"))+theme(axis.title.y = element_blank()),legend = "bottom",
+                          nrow = 1,ncol = 3,labels = c(letters[3],"",""),common.legend = T)
+                ,nrow=3,heights = c(1,2,1.3))
+
+ggsave("./Figures/SI/Pulse_coupling_effects.pdf",p_tot,width =10,height = 14 )
+
+
+
+
+
+
 ## Varying the parameters ----
 
 n_point=15
@@ -1350,4 +1562,5 @@ p_slope=ggarrange(p_ma,ggarrange(p_C+labs(x=""),p_N,nrow=2,common.legend = T,leg
                                  labels=LETTERS[2:3], font.label = list(size = 19),
                                  hjust=-2,vjust = -1),nrow=2,labels=c(LETTERS[1],""),heights = c(1,2),hjust=-3)
 ggsave("./Figures/SI/Slopes_variation.pdf",p_slope,width = 7,height = 7)
+
 
