@@ -21,12 +21,11 @@ source("Stoichio_functions.R")
 
 
 
-n_point=25;p_coup=1
+n_point=50;p_coup=1
 param_space=expand.grid(rP=seq(1/10,1/40,length.out=n_point),rB=seq(0.12,0.25,length.out=n_point))
 scenario_space=tibble(Name_scena=c("C-limited",'N-limited',"Colimitation"),type_ode=c(rep("full",3)),
                       param_name=c("C-limited","N-limited","Colimitation"),N_time=rep(10000,3),
                       colim=c(F,F,T))
-
 
 for (rowspace in 1:nrow(scenario_space)){ 
   
@@ -278,7 +277,17 @@ write.table(d,"./Table/Mecanism_herbivores_rP_C-limited.csv",sep=";")
 
 n_point=100;p_coup=1;  
 param_space=expand.grid(rP=c(1/10,1/40),rB=c(0.12,0.25));p_seq=seq(0,1,length.out=n_point)
-
+Extract_equilibrium_from_dynamics=function(data,param,consumers=F){
+  
+  n_begin=ifelse(consumers,19,15)
+  
+  data_mean=as_tibble(t(colMeans(data[(nrow(data)-30000):nrow(data),-1])))
+  data_with_param=cbind(data_mean,matrix(unlist(param),ncol = length(param),nrow=1))
+  colnames(data_with_param)[n_begin:ncol(data_with_param)]=names(param)
+  
+  return(list(Eq=data_with_param))
+  
+}
 for (s in c("C-limited",'N-limited',"Colimitation")){ 
   d=d2=d3=tibble()
 
@@ -291,7 +300,7 @@ for (s in c("C-limited",'N-limited',"Colimitation")){
       state=Get_initial_values(param)
       
       
-      data_save=Compute_ode(state,param,optim_time = F,n_time = 10000)
+      data_save=Compute_ode(state,param,optim_time = F,n_time = 60000)
       Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
       
       limit_ratio=Get_limitation(Eq$Eq,param)
@@ -299,7 +308,7 @@ for (s in c("C-limited",'N-limited',"Colimitation")){
       P1_bidirectional=Primary_production(Eq$Eq,param)
       P2_bidirectional=Secondary_production(Eq$Eq,param)
       
-      feedback=Compute_feedbacks(Eq$Eq,param,type_prod = "Production",n_time=10000)
+      feedback=Compute_feedbacks(Eq$Eq,param,type_prod = "Production",n_time=60000)
       
       
       

@@ -81,6 +81,8 @@ d_cross$Flow_class=sapply(1:nrow(d_cross),function(x){
 })
 
 d_cross$Mattyp1[which(d_cross$Coupling=="Terr. to fresh." & d_cross$Mattyp1=="Aqu. insects")]="Terr. inverteb."
+d_cross$Mattyp1[which(d_cross$Coupling=="Fresh. to terr." & d_cross$Mattyp1=="Small amphib.")]="Amphib."
+d_cross$Mattyp1[which(d_cross$Coupling=="Terr. to fresh." & d_cross$Mattyp1=="Small amphib.")]="Amphib."
 
 
 p_save3= ggplot(d_cross) +
@@ -89,54 +91,82 @@ p_save3= ggplot(d_cross) +
                  color="")+
   scale_fill_manual(values=c("#74BEEF","#6474DE","#03116B","#000000","#CA3A3A","#CA813A","#CA8686","gray",
                              "#66A46A","#87D45F"),
-                    labels=c("Fresh. amphib. (n = 26)","Fresh. insects (n = 156)","Fresh. carcass (n = 28)","Terr. POC (n = 3)","Terr. amphib. (n = 24)",
-                             "Terr. carcass (n = 2)","Terr. mammal faeces (n = 4)","Terr. DOC (n = 1)",
-                             "Terr. inverteb. (n = 123)","Terr. plants (n = 161)","Terr. "))+
+                    labels=c("Fresh. amphib. (n = 26)","Fresh. insects (n = 156)","Fresh. carcass (n = 28)",
+                             "Terr. amphib. (n = 24)","Terr. carcass (n = 2)","Terr. DOC (n = 1)",
+                             "Terr. mammal faeces (n = 4)","Terr. POC (n = 3)",
+                             "Terr. inverteb. (n = 123)","Terr. plants (n = 161)"))+
   scale_color_manual(values=c("#74BEEF","#6474DE","#03116B","#000000","#CA3A3A","#CA813A","#CA8686","gray",
                               "#66A46A","#87D45F"),
-                     labels=c("Fresh. amphib. (n = 26)","Fresh. insects (n = 156)","Fresh. carcass (n = 28)","Terr. POC (n = 3)","Terr. amphib. (n = 24)",
-                              "Terr. carcass (n = 2)","Terr. mammal faeces (n = 4)","Terr. DOC (n = 1)",
-                              "Terr. inverteb. (n = 123)","Terr. plants (n = 161)","Terr. "))
+                     labels=c("Fresh. amphib. (n = 26)","Fresh. insects (n = 156)","Fresh. carcass (n = 28)",
+                              "Terr. amphib. (n = 24)","Terr. carcass (n = 2)","Terr. DOC (n = 1)",
+                              "Terr. mammal faeces (n = 4)","Terr. POC (n = 3)",
+                              "Terr. inverteb. (n = 123)","Terr. plants (n = 161)"))
+
 
 rectangle=tibble(xmin=c(.5,2.7),xmax=c(2.3,4.5),ymin=c(0,0),ymax=rep(max(d_cross$Flow),2),name=c("N","C"))
 
-p=ggplot(NULL)+
+# p_save1=ggplot(NULL)+
+#   
+#   geom_boxplot(data=d_cross,aes(x=interaction(Coupling,Resource),y=Flow,group=interaction(Coupling,Resource)),width=0.4,outlier.shape = NA,color="white",fill="gray50",
+#                position = position_dodge(width = 1),alpha=.4)+ 
+#   
+#   geom_point(data=d_cross,aes(x=interaction(Coupling,Resource),y=Flow,color=Mattyp2,group=interaction(Mattyp2,Coupling,Resource)),
+#              position=position_jitterdodge(dodge.width=.4,jitter.width=.05),alpha=.8)+ 
+#   
+#   geom_rect(data=NULL,aes(xmin=.5,xmax=2.35,ymin=0,ymax=max(d_cross$Flow)),alpha=.1,fill="#D2B96F")+
+#   geom_rect(data=NULL,aes(xmin=2.65,xmax=4.5,ymin=0,ymax=max(d_cross$Flow)),alpha=.1,fill="#AC86DA")+
+#   
+#   scale_y_continuous(trans = "log10",breaks = c(0.01,0.1,1,10,100))+the_theme+
+#   theme(legend.position = "bottom")+
+#   scale_color_manual(values=col_matt_type)+
+#   scale_x_discrete(labels=c("Fresh. to terr.", "Terr. to fresh." ,"Fresh. to terr.", "Terr. to fresh."))+
+#   labs(x="",fill="",y=expression(paste("Cross-ecosystem flows of resources (g.",m^{"-2"},".", yr^{"-1"},")")),shape="",color="")+
+#   guides(shape=F)+theme(axis.title.y = element_text(size=10),axis.text.x = element_text(size=10))+
+#   annotate("text",x=1:4,y=5e3,label=paste0(round((d_cross%>% group_by(Resource,Coupling) %>% summarise(Mean_flow=mean(Flow),.groups = "keep"))$Mean_flow,2)),
+#            size=3)+
+#   annotate("text",x=1:4,y=0.0001,label=paste0("n = ",as.numeric(table(d_cross$Coupling,d_cross$Resource))),size=3)+
+#   the_theme+theme(axis.title.x = element_blank())
+
+
+p_save1=ggplot(NULL)+
   
-  geom_boxplot(data=d_cross,aes(x=interaction(Coupling,Resource),y=Flow,group=interaction(Coupling,Resource)),width=0.4,outlier.shape = NA,color="white",fill="gray50",
+  geom_boxplot(data=d_cross,aes(x=interaction(Coupling,Resource),y=Flow,
+                                group=interaction(Coupling,Resource)),width=0.4,outlier.shape = NA,color="white",fill="gray50",
                position = position_dodge(width = 1),alpha=.4)+ 
   
-  geom_point(data=d_cross,aes(x=interaction(Coupling,Resource),y=Flow,color=Mattyp2,group=interaction(Mattyp2,Coupling,Resource)),
-             position=position_jitterdodge(dodge.width=.4,jitter.width=.05),alpha=.8)+ 
+  geom_point(data=d_cross,aes(x=interaction(Coupling,Resource),y=Flow,shape=Mattyp1,color=From_ecosys,
+                              group=interaction(Mattyp1,Coupling,Resource,From_ecosys)),
+             position=position_jitterdodge(dodge.width=.4,jitter.width=.05))+ 
   
   geom_rect(data=NULL,aes(xmin=.5,xmax=2.35,ymin=0,ymax=max(d_cross$Flow)),alpha=.1,fill="#D2B96F")+
   geom_rect(data=NULL,aes(xmin=2.65,xmax=4.5,ymin=0,ymax=max(d_cross$Flow)),alpha=.1,fill="#AC86DA")+
   
   scale_y_continuous(trans = "log10",breaks = c(0.01,0.1,1,10,100))+the_theme+
   theme(legend.position = "bottom")+
-  theme( axis.text.x = element_text(angle = 60, hjust = 1))+
-  scale_color_manual(values=col_matt_type)+
+  scale_color_manual(values=color_stoichio)+
   scale_shape_manual(values=shape_type)+
+  scale_x_discrete(labels=c("Fresh. to terr.", "Terr. to fresh." ,"Fresh. to terr.", "Terr. to fresh."))+
   labs(x="",fill="",y=expression(paste("Cross-ecosystem flows of resources (g.",m^{"-2"},".", yr^{"-1"},")")),shape="",color="")+
-  guides(shape=F)+theme(axis.title.y = element_text(size=10))+
+  theme(axis.title.y = element_text(size=10),axis.text.x = element_text(size=10),legend.box = "vertical",axis.title.x = element_blank())+
   annotate("text",x=1:4,y=5e3,label=paste0(round((d_cross%>% group_by(Resource,Coupling) %>% summarise(Mean_flow=mean(Flow),.groups = "keep"))$Mean_flow,2)),
-           size=3)+
-  annotate("text",x=1:4,y=0.0001,label=paste0("n = ",as.numeric(table(d_cross$Coupling,d_cross$Resource))),size=3)
+           size=3.5)+
+  annotate("text",x=1:4,y=0.0001,label=paste0("n = ",as.numeric(table(d_cross$Coupling,d_cross$Resource))),size=3.5)+
+  geom_text(data=tibble(text=c("Carbon","Nitrogen"),x=c(1.5,3.5),y=c(3e2,3e2)),aes(x=x,y=y,label=text),fontface = "bold")+
+  guides(color = guide_legend(override.aes = list(size = 4)))
 
-p_save1=p+  the_theme+theme(axis.title.x = element_blank())
-
-p1 = ggplot(d_cross%>%group_by(., Mattyp1,Coupling)%>%summarise(.groups = "keep",mean_flow=mean(Flow)), 
-            aes(x = "", y = mean_flow, fill = interaction(Mattyp1,Coupling),color=interaction(Mattyp1,Coupling))) +
-  geom_col() +
-  coord_polar(theta = "y")+theme_transparent()+labs(fill="Distribution of aquatic-terrestrial resource fluxes",
-                                                    color="Distribution of aquatic-terrestrial resource fluxes")+
-  scale_fill_manual(values=c("#74BEEF","#6474DE","#03116B","#CA813A","#000000","#CA8686","gray","#CA3A3A",
-                             "#66A46A","#87D45F"),
-                    labels=c("Aqu. insects (n = 156)","Aqu. carcass (n = 28)","Aqu. amphib. (n = 26)","Terr. carcass (n = 2)","Terr. DOC (n = 1)","Terr. mammal faeces (n = 4)",
-                             "Terr. POC (n = 3)","Terr. amphib. (n = 24)","Terr. inverteb. (n = 123)","Terr. plants (n = 161)","Terr. "))+
-  scale_color_manual(values=c("#74BEEF","#6474DE","#03116B","#CA813A","#000000","#CA8686","gray","#CA3A3A",
-                              "#66A46A","#87D45F"),
-                     labels=c("Aqu. insects (n = 156)","Aqu. carcass (n = 28)","Aqu. amphib. (n = 26)","Terr. carcass (n = 2)","Terr. DOC (n = 1)","Terr. mammal faeces (n = 4)",
-                              "Terr. POC (n = 3)","Terr. amphib. (n = 24)","Terr. inverteb. (n = 123)","Terr. plants (n = 161)","Terr. "))
+# p1 = ggplot(d_cross%>%group_by(., Mattyp1,Coupling)%>%summarise(.groups = "keep",mean_flow=mean(Flow)), 
+#             aes(x = "", y = mean_flow, fill = interaction(Mattyp1,Coupling),color=interaction(Mattyp1,Coupling))) +
+#   geom_col() +
+#   coord_polar(theta = "y")+theme_transparent()+labs(fill="Distribution of aquatic-terrestrial resource fluxes",
+#                                                     color="Distribution of aquatic-terrestrial resource fluxes")+
+#   scale_fill_manual(values=c("#74BEEF","#6474DE","#03116B","#CA813A","#000000","#CA8686","gray","#CA3A3A",
+#                              "#66A46A","#87D45F"),
+#                     labels=c("Aqu. insects (n = 156)","Aqu. carcass (n = 28)","Aqu. amphib. (n = 26)","Terr. carcass (n = 2)","Terr. DOC (n = 1)","Terr. mammal faeces (n = 4)",
+#                              "Terr. POC (n = 3)","Terr. amphib. (n = 24)","Terr. inverteb. (n = 123)","Terr. plants (n = 161)","Terr. "))+
+#   scale_color_manual(values=c("#74BEEF","#6474DE","#03116B","#CA813A","#000000","#CA8686","gray","#CA3A3A",
+#                               "#66A46A","#87D45F"),
+#                      labels=c("Aqu. insects (n = 156)","Aqu. carcass (n = 28)","Aqu. amphib. (n = 26)","Terr. carcass (n = 2)","Terr. DOC (n = 1)","Terr. mammal faeces (n = 4)",
+#                               "Terr. POC (n = 3)","Terr. amphib. (n = 24)","Terr. inverteb. (n = 123)","Terr. plants (n = 161)","Terr. "))
 
 d_stoichio=read.table("./Empirical_data/Stoichio_NC.csv",sep=";")
 
@@ -145,7 +175,7 @@ p_save2=ggplot(d_stoichio,
   geom_boxplot(aes(fill=Exporter_ecosyst,group=Exporter_ecosyst),width=0.4,outlier.shape = NA,color="white",
                position = position_dodge(width = 1),alpha=.4)+ 
   geom_point(aes(color=Exporter_ecosyst),position=position_jitterdodge(dodge.width=.4,jitter.width=.1))+
-  annotate("text",x=1:4,y=0.005,label=paste0("n = ",table(d_stoichio$Exporter_ecosyst)),size=3)+
+  annotate("text",x=1:4,y=0.005,label=paste0("n = ",table(d_stoichio$Exporter_ecosyst)),size=3.5)+
   labs(x="",fill="",y="N:C",shape="",color="",shape="")+scale_y_log10()+
   scale_shape_manual(values=shape_type)+
   scale_fill_manual(values=color_stoichio)+
@@ -154,10 +184,19 @@ p_save2=ggplot(d_stoichio,
   guides(color=F,fill=F)
 
 
-p_tot=ggarrange(p_save3+theme(legend.text = element_text(size=9))+guides(fill=guide_legend(ncol=2),color=F),
-                ggarrange(p_save2,p_save1+  theme( axis.text.x = element_text(angle = 0, hjust = .5)),nrow = 2,hjust = -4,labels = LETTERS[2:3],
-                          font.label = list(size=20)),
-                labels=c(LETTERS[1],"",""),nrow = 2,heights = c(1,1.5),hjust =-4,font.label = list(size=20))
+p_tot=ggarrange(p_save3+
+                  theme(legend.text = element_text(size=10),legend.position = c(.6, .8),axis.text.x = element_text(size=12),
+                        axis.text.y = element_text(size=12), axis.title = element_text(size=12))+
+                  guides(fill=guide_legend(ncol=2),color=F),
+                ggarrange(p_save2+
+                            theme(legend.position="none",axis.text.x = element_text(size=12),
+                                  axis.text.y = element_text(size=12), axis.title = element_text(size=12)),
+                          p_save1+
+                            theme(axis.title.y = element_text(size=12),axis.text.x = element_text(size=12),
+                                  axis.text.y = element_text(size=12), axis.title = element_text(size=12)),
+                          nrow = 2,hjust = -3.3,labels = LETTERS[2:3],
+                          font.label = list(size=20),heights = c(1,1.7)),
+                labels=c(LETTERS[1],"",""),nrow = 2,heights = c(1,2),hjust =-4,font.label = list(size=20))
 ggsave("./Figures/Fig1.pdf",p_tot,width = 6,height = 12)
 
 
@@ -179,7 +218,7 @@ for (scena in c("C-limited","N-limited")){
     if (pl %in% c("PP2_T","PP1_T")) pal_col=pal_terr(100)
     if (pl %in% c("PP2_A","PP1_A")) pal_col=pal_aqua(100)
     
-    assign(paste0("p_",u),ggplot(filter(d2_melt,variable==pl))+geom_tile(aes(x=rP,y=rB,fill=value))+the_theme+
+    assign(paste0("p_",u),ggplot(filter(d2_melt,variable==pl))+geom_tile(aes(x=rP,y=rB,fill=value),width=1/200,height=1/200)+the_theme+
              labs(y=expression(paste("N:C decomposers (r"[B],")")),x=expression(paste("N:C plants (r"[P],")")),fill='')+ggtitle(name_plot[u])+
              scale_fill_gradientn(colors = pal_col)+geom_contour(aes(x=rP,y=rB,z=value),breaks = c(0),linetype=1,lwd=.01,color="black")+
              theme(plot.title = element_text(size=12)))
@@ -210,7 +249,11 @@ for (scena in c("C-limited","N-limited")){
   
   
   p_1=p_1+labs(y="")
-  p_tile=ggarrange(p_2,p_1,ncol=2,nrow=1)
+  p_tile=ggarrange(p_2+theme(axis.title = element_text(size=13),axis.text.x = element_text(size=12),
+                             plot.title = element_text(size=12),axis.text.y = element_text(size=12)),
+                   p_1+theme(axis.title = element_text(size=13),axis.text.x = element_text(size=12),
+                             plot.title = element_text(size=12),axis.text.y = element_text(size=12)),
+                   ncol=2,nrow=1)
   
   p_space=expand.grid(rB=c(.12,.25),rP=c(.025,.1))
   param=Get_classical_param(scena = scena,coupling=T)
@@ -268,7 +311,8 @@ for (scena in c("C-limited","N-limited")){
   assign(paste0("p_tot_",gsub("-limited","",scena)),ggarrange(p_tile,P_structure,nrow=2,heights =  c(2.5,1)))
 }
 
-p_tot=ggarrange(p_tot_C,p_tot_N,nrow=2,labels = LETTERS[1:2],font.label = list(size=20),hjust=-1.5)
+p_tot=ggarrange(p_tot_C,p_tot_N,
+                nrow=2,labels = LETTERS[1:2],font.label = list(size=20),hjust=-1.5)
 ggsave(paste0("./Figures/Fig3.pdf"),p_tot,width = 7,height = 10)
 
 
@@ -286,9 +330,9 @@ for (scena in c("C-limited","N-limited")){
   u=1
   for (pl in unique(d2_melt$variable)){
     pal_col=pal(100)
-    assign(paste0("p_",u),ggplot(filter(d2_melt,variable==pl))+geom_tile(aes(x=rP,y=rB,fill=value))+the_theme+
+    assign(paste0("p_",u),ggplot(filter(d2_melt,variable==pl))+geom_tile(aes(x=rP,y=rB,fill=value),width=1/200,height=1/200)+the_theme+
              labs(y=expression(paste("N:C decomposers (r"[B],")")),x=expression(paste("N:C plants (r"[P],")")),fill='')+ggtitle(name_plot[u])+
-             scale_fill_gradient2(low = "red",mid = "white",high = "blue")+geom_contour(aes(x=rP,y=rB,z=value),breaks = c(0),linetype=1,lwd=.01,color="gray50")+
+             scale_fill_gradient2(low = "red",mid = "white",high = "blue")+#geom_contour(aes(x=rP,y=rB,z=value),breaks = c(-.0001,0.0001),linetype=1,lwd=.1,color="gray50")+
              theme(plot.title = element_text(size=13)))
     u=u+1
   }
@@ -306,10 +350,17 @@ for (scena in c("C-limited","N-limited")){
     
   }
   
-  assign(paste0("p_tile_",gsub("-limited","",scena)),ggarrange(p_1,p_2,ncol=2))
+  assign(paste0("p_tile_",gsub("-limited","",scena)),
+         ggarrange(p_1+theme(axis.title = element_text(size=14),axis.text.x = element_text(size=13),
+                             plot.title = element_text(size=14),axis.text.y = element_text(size=13)),
+                   p_2+theme(axis.title = element_text(size=14),axis.text.x = element_text(size=13),
+                             plot.title = element_text(size=14),axis.text.y = element_text(size=13)),
+                   ncol=2))
 }
 
-p_tot=ggarrange(p_tile_C,p_tile_N,nrow=2,labels = LETTERS[1:2],font.label = list(size=20))
+p_tot=ggarrange(p_tile_C,
+                p_tile_N,
+                nrow=2,labels = LETTERS[1:2],font.label = list(size=20))
 
 ggsave(paste0("./Figures/Fig4.pdf"),p_tot,width = 8,height = 9)
 
@@ -339,15 +390,11 @@ for (s in c("C-limited","N-limited")){
            geom_point(data=filter(d2_mean_rep,round(Phi,6) %in% round(phi_keep,6)),aes(x=Phi,y=mean_feedbackT1,shape=interaction(rP,rB)),color="#3FB500",size=3)+
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackT1,group=interaction(rP,rB)),color="#3FB500")+
            
-           ggtitle("Terrestrial basal prod.")+
-           scale_shape_manual(values=c(1,2,0,5),labels=c(TeX("$r_P = 0.025, r_B = 0.12$"),TeX("$r_P = 0.1, r_B = 0.12$"),
+           ggtitle("Terr. basal prod.")+
+           scale_shape_manual(values=c(1,2,8,11),labels=c(TeX("$r_P = 0.025, r_B = 0.12$"),TeX("$r_P = 0.1, r_B = 0.12$"),
                                                          TeX("$r_P = 0.025, r_B = 0.25$"),TeX("$r_P = 0.1, r_B = 0.25$")))+
-           the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta$"),y="Feedback on production",
-                                                    shape="")+
-           theme(plot.title = element_text(size=12),axis.text = element_text(size=12),
-                 axis.title.y = element_text(size=13),
-                 axis.title.x = element_text(size=14),
-                 legend.text = element_text(size=17),legend.title = element_text(size=13)))
+           the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta$"),y="Spatial feedback",
+                                                    shape=""))
   
   
   
@@ -356,47 +403,39 @@ for (s in c("C-limited","N-limited")){
            geom_point(data=filter(d2_mean_rep,round(Phi,6) %in% round(phi_keep,6)),aes(x=Phi,y=mean_feedbackT2,shape=interaction(rP,rB)),color="#3D8814",size=3)+
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackT2,group=interaction(rP,rB)),color="#3D8814")+
            
-           ggtitle("Terrestrial secondary prod.")+
-           scale_shape_manual(values=c(1,2,0,5),labels=c(TeX("$r_P = 0.025, r_B = 0.12$"),TeX("$r_P = 0.1, r_B = 0.12$"),
+           ggtitle("Terr. secondary prod.")+
+           scale_shape_manual(values=c(1,2,8,11),labels=c(TeX("$r_P = 0.025, r_B = 0.12$"),TeX("$r_P = 0.1, r_B = 0.12$"),
                                                          TeX("$r_P = 0.025, r_B = 0.25$"),TeX("$r_P = 0.1, r_B = 0.25$")))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta$"),y="",
-                                                    shape="")+
-           theme(plot.title = element_text(size=12),axis.text = element_text(size=12),
-                 axis.title.y = element_text(size=13),
-                 axis.title.x = element_text(size=14),
-                 legend.text = element_text(size=17),legend.title = element_text(size=14)))
+                                                    shape=""))
   
   assign(paste0("p_",3),
          ggplot(NULL)+
            geom_point(data=filter(d2_mean_rep,round(Phi,6) %in% round(phi_keep,6)),aes(x=Phi,y=mean_feedbackA1,shape=interaction(rP,rB)),color="#2EAEBF",size=3)+
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackA1,group=interaction(rP,rB)),color="#2EAEBF")+
            
-           ggtitle("Aquatic basal prod.")+
-           scale_shape_manual(values=c(1,2,0,5),labels=c(TeX("$r_P = 0.025, r_B = 0.12$"),TeX("$r_P = 0.1, r_B = 0.12$"),
+           ggtitle("Aqu. basal prod.")+
+           scale_shape_manual(values=c(1,2,8,11),labels=c(TeX("$r_P = 0.025, r_B = 0.12$"),TeX("$r_P = 0.1, r_B = 0.12$"),
                                                          TeX("$r_P = 0.025, r_B = 0.25$"),TeX("$r_P = 0.1, r_B = 0.25$")))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta$"),y="",
-                                                    shape="")+
-           theme(plot.title = element_text(size=12),axis.text = element_text(size=12),
-                 axis.title.y = element_text(size=13),
-                 axis.title.x = element_text(size=14),
-                 legend.text = element_text(size=17),legend.title = element_text(size=13)))
+                                                    shape=""))
   
   assign(paste0("p_",4),
          ggplot(NULL)+
            geom_point(data=filter(d2_mean_rep,round(Phi,6) %in% round(phi_keep,6)),aes(x=Phi,y=mean_feedbackA2,shape=interaction(rP,rB)),color="#2B50A7",size=3)+
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackA2,group=interaction(rP,rB)),color="#2B50A7")+
            
-           ggtitle("Aquatic secondary prod.")+
-           scale_shape_manual(values=c(1,2,0,5),labels=c(TeX("$r_P = 0.025, r_B = 0.12$"),TeX("$r_P = 0.1, r_B = 0.12$"),
+           ggtitle("Aqu. secondary prod.")+
+           scale_shape_manual(values=c(1,2,8,11),labels=c(TeX("$r_P = 0.025, r_B = 0.12$"),TeX("$r_P = 0.1, r_B = 0.12$"),
                                                          TeX("$r_P = 0.025, r_B = 0.25$"),TeX("$r_P = 0.1, r_B = 0.25$")))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta$"),y="",
-                                                    shape="")+
-           theme(plot.title = element_text(size=12),axis.text = element_text(size=12),
-                 axis.title.y = element_text(size=13),
-                 axis.title.x = element_text(size=14),
-                 legend.text = element_text(size=17),legend.title = element_text(size=13)))
+                                                    shape=""))
   
-  
+  p_legend=ggplot(NULL)+
+    geom_point(data=filter(d2_mean_rep,round(Phi,6) %in% round(phi_keep,6)),aes(x=Phi,y=mean_feedbackA1,shape=interaction(rP,rB)),color="black",size=3)+
+    theme_classic()+
+    scale_shape_manual(values=c(1,2,8,11),labels=c(TeX("$ \ r_P = 0.025, r_B = 0.12  $"),TeX("$ \  r_P = 0.1, r_B = 0.12  $"),
+                                                  TeX("$ \ r_P = 0.025, r_B = 0.25  $"),TeX("$ \  r_P = 0.1, r_B = 0.25  $")))
   
   if (s=="N-limited"){
     
@@ -407,7 +446,7 @@ for (s in c("C-limited","N-limited")){
       geom_line(data=filter(d2_mean_rep,rP==.025),aes(x=Phi,y=mean_feedbackA1,group=interaction(rP,rB)),color="#2EAEBF")+
       
       ggtitle("")+scale_x_continuous(breaks = c(0,1))+
-      scale_shape_manual(values=c(0,1))+
+      scale_shape_manual(values=c(8,1))+
       geom_hline(yintercept=0)+labs(x=TeX(""),y="",
                                     shape="",color="")+theme(legend.position = "none",text=element_text(size=6),axis.text = element_text(size=10))
     p_3=p_3 +
@@ -423,7 +462,7 @@ for (s in c("C-limited","N-limited")){
                 aes(x=Phi,y=mean_feedbackA2,group=interaction(rP,rB)),color="#2B50A7")+
       
       ggtitle("")+scale_x_continuous(breaks = c(0,0.6))+
-      scale_shape_manual(values=c(0,5))+
+      scale_shape_manual(values=c(8,11))+
       geom_hline(yintercept=0)+labs(x=TeX(""),y="",
                                     shape="",color="")+theme(legend.position = "none",text=element_text(size=6),axis.text = element_text(size=10))
     p_4=p_4 +
@@ -432,19 +471,47 @@ for (s in c("C-limited","N-limited")){
   }
   
   if (gsub("-limited","",s)=="C"){
-    assign(paste0("p_",gsub("-limited","",s)),ggarrange(p_1+theme(legend.position = "none"),
-                                                        p_2+theme(legend.position = "none"),
-                                                        p_3+theme(legend.position = "none"),
-                                                        p_4+theme(legend.position = "none"),
+    assign(paste0("p_",gsub("-limited","",s)),ggarrange(p_1+theme(plot.title = element_text(size=16),axis.text = element_text(size=13),
+                                                                axis.title.y = element_text(size=17),
+                                                                axis.title.x = element_text(size=16),
+                                                                legend.text = element_text(size=17)),
+                                                        p_2+theme(plot.title = element_text(size=16),axis.text = element_text(size=13),
+                                                                  axis.title.x = element_text(size=16),
+                                                                  legend.text = element_text(size=17)),
+                                                        p_3+theme(plot.title = element_text(size=16),axis.text = element_text(size=13),
+                                                                  axis.title.x = element_text(size=16),
+                                                                  legend.text = element_text(size=17)),
+                                                        p_4+theme(plot.title = element_text(size=16),axis.text = element_text(size=13),
+                                                                  axis.title.x = element_text(size=16),
+                                                                  legend.text = element_text(size=17)),
                                                         ncol=4,common.legend = F,legend = "none"))
   } else{
-    assign(paste0("p_",gsub("-limited","",s)),ggarrange(p_1+ggtitle(""),p_2+ggtitle(""),p_3+ggtitle(""),p_4+ggtitle(""),ncol=4,common.legend = T,legend = "bottom"))
+    assign(paste0("p_",gsub("-limited","",s)),
+           ggarrange(p_1+theme(plot.title=element_blank(),axis.text = element_text(size=13),
+                               axis.title.y = element_text(size=17),
+                               axis.title.x = element_text(size=20),
+                               legend.text = element_text(size=17)),
+                     p_2+theme(plot.title=element_blank(),axis.text = element_text(size=13),
+                               axis.title.x = element_text(size=20),
+                               legend.text = element_text(size=17)),
+                     p_3+theme(plot.title=element_blank(),axis.text = element_text(size=13),
+                               axis.title.x = element_text(size=20),
+                               legend.text = element_text(size=17)),
+                     p_4+theme(plot.title=element_blank(),axis.text = element_text(size=13),
+                               axis.title.x = element_text(size=20),
+                               legend.text = element_text(size=17)),ncol=4,legend = "none"))
   }
   
 }
 
-p_feedback=ggarrange(p_C,p_N,nrow = 2,common.legend = T,labels = LETTERS[1:2],legend = "bottom", heights = c(1,1.2))
-ggsave(paste0("./Figures/Fig_5.pdf"),p_feedback,width = 12,height = 7)
+p_feedback=ggarrange(p_C,p_N,ggarrange(ggplot()+theme_void(),
+                                       get_legend(p_legend+labs(shape="")+guides(shape=guide_legend(nrow=2),shape=F)+
+                                                    theme(legend.text = element_text(size=16))),
+                                       ggplot()+theme_void(),ncol=3,widths = c(.01,3,.01)),
+                     nrow = 3,common.legend = T,labels = c(LETTERS[1:2],""),heights = c(1,1,.3),font.label = list(size=20),vjust = c(2,0))
+
+
+ggsave(paste0("./Figures/Fig_5.pdf"),p_feedback,width = 14,height = 7)
 
 
 
@@ -1286,7 +1353,7 @@ Get_transient_dynamics=function(way="T",phi=0,limitation="C-limited",NCplant=.02
   data_save[,-1]=scale(data_save[,-1])
   
   data_save=data_change(data_save)%>%
-    filter(foodweb==ifelse(way=="T","Aquatic","Terrestrial"),variable %in% c("Herbivores_C","Plants_C",
+    filter(foodweb==ifelse(way=="T","Terrestrial","Aquatic"),variable %in% c("Herbivores_C","Plants_C",
                                                                              "Decomposers_C","Consumers_C"))%>%
     mutate(., foodweb=recode_factor(foodweb,"Aquatic"="Aquatic ecosystem","Terrestrial" = "Terrestrial ecosystem"))
   
@@ -1327,7 +1394,7 @@ p_tot=ggarrange(ggarrange(p_1,p_2,ncol = 2,nrow = 1,legend = "none",labels=c(let
                           nrow = 1,ncol = 3,labels = c(letters[3],"",""),common.legend = T)
                 ,nrow=3,heights = c(1,2,1.3))
 
-ggsave("./Figures/SI/Pulse_coupling_effects.pdf",p_tot,width =10,height = 14 )
+ggsave("./Figures/SI/Pulse_coupling_effects2.pdf",p_tot,width =10,height = 14 )
 
 
 
