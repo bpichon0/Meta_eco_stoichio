@@ -31,8 +31,11 @@ the_theme=theme_classic()+theme(legend.position = "bottom",
 
 
 
+#******************************************************************************#
 
 # Step 1: Main figures ----
+
+#******************************************************************************#
 ## Fig : Empirical data ----
 
 color_ac_ter=c('Aquatic'='#90D0E0','Terrestrial'="#66C562")
@@ -539,8 +542,12 @@ ggsave(paste0("./Figures/Fig_5.pdf"),p_feedback,width = 14,height = 7)
 
 
 
+#******************************************************************************#
 
 # Step 2: SI figures ----
+
+#******************************************************************************#
+
 ## 2) Fig N & C limited, secondary production ----
 for (scena in c("C-limited","N-limited")){
   type_prod="PP"

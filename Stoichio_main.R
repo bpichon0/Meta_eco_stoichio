@@ -14,9 +14,11 @@ dir.create("./Figures/",showWarnings = F)
 dir.create("./Table/",showWarnings = F)
 source("Stoichio_functions.R")
 
+#******************************************************************************#
 
 # Step 1: Simulations for main text ----
 
+#******************************************************************************#
 ## Mapping ecosystem production in the rP and rB space for delta_X = 1 ----
 
 
@@ -390,8 +392,11 @@ for (s in c("C-limited",'N-limited')){
 
 
 
+#******************************************************************************#
 
 # Step 2: Simulation for SI ----
+
+#******************************************************************************#
 
 ## Sensitivity on the food-webs structure: adding a top predator ----
 ### Stoichiometry space----
