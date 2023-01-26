@@ -739,7 +739,20 @@ Sensitivity_tab=list(
 names_list=c("INt" ,  "IDt" ,  "lNt" ,  "lDt"  , "mt"   , "eH"    ,  "aP" , "aH" ,  "dP" , "dH"   , 
              "lNa"  , "lDa" ,  "ma"  ,  "eC"  ,  "eB"   ,  "aBD", "aC"  ,  "dB"  ,  "dC","INa" ,  "IDa"  )
 
-time_ode=1000;colim=F
+time_ode=5000;colim=F
+
+
+Extract_equilibrium_from_dynamics=function(data,param,consumers=F){
+  
+  n_begin=ifelse(consumers,19,15)
+  
+  data_mean=as_tibble(t(colMeans(data[(nrow(data)-4000):nrow(data),-1])))
+  data_with_param=cbind(data_mean,matrix(unlist(param),ncol = length(param),nrow=1))
+  colnames(data_with_param)[n_begin:ncol(data_with_param)]=names(param)
+  
+  return(list(Eq=data_with_param))
+  
+}
 
 for (Scena in c("N-limited","C-limited")){ #for each scenario of limitation
   
@@ -802,12 +815,6 @@ for (Scena in c("N-limited","C-limited")){ #for each scenario of limitation
         d2=rbind(d2,Eq$Eq %>% add_column(Phi=delta_X,Ratio=Get_limitation(Eq$Eq,param)$Ratio,Scenario=Scena,
                                          P1_T=P1$Terrestrial,P1_A=P1$Aquatic,P2_T=P2$Terrestrial,P2_A=P2$Aquatic,P1_A_tot=P1$Aqua_tot,
                                          PP1_T=PP1$Terrestrial,PP1_A=PP1$Aquatic,PP2_T=PP2$Terrestrial,PP2_A=PP2$Aquatic,PP1_A_tot=PP1$Aqua_tot,
-                                         
-                                         #LRR productivity
-                                         LRR_P1_T=log(P1$Terrestrial/P1_recy$Terrestrial),
-                                         LRR_P1_A=log(P1$Aquatic/P1_recy$Aquatic),
-                                         LRR_P2_T=log(P2$Terrestrial/P2_recy$Terrestrial),
-                                         LRR_P2_A=log(P2$Aquatic/P2_recy$Aquatic),
                                          
                                          #LRR production
                                          LRR_PP1_T=log(PP1$Terrestrial/PP1_recy$Terrestrial),

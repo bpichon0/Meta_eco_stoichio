@@ -36,7 +36,7 @@ the_theme=theme_classic()+theme(legend.position = "bottom",
 # Step 1: Main figures ----
 
 #******************************************************************************#
-## Fig : Empirical data ----
+## >> Fig : Empirical data ----
 
 color_ac_ter=c('Aquatic'='#90D0E0','Terrestrial'="#66C562")
 color_resource=c('N'='#90D0E0','C'="#66C562")
@@ -205,7 +205,7 @@ ggsave("./Figures/Fig1.pdf",p_tot,width = 6,height = 12)
 
 
 
-## Fig : N-limited & C-limited , explanation patterns ----
+## >> Fig : N-limited & C-limited , explanation patterns ----
 
 for (scena in c("C-limited","N-limited")){
   type_prod="PP"
@@ -320,7 +320,7 @@ p_tot=ggarrange(p_tot_C,p_tot_N,
 ggsave(paste0("./Figures/Fig3.pdf"),p_tot,width = 7,height = 10)
 
 
-## Fig : LRR at the meta-ecosystem scale ----
+## >> Fig : LRR at the meta-ecosystem scale ----
 
 for (scena in c("C-limited","N-limited")){
   type_prod="PP"
@@ -369,7 +369,7 @@ p_tot=ggarrange(p_tile_C,
 ggsave(paste0("./Figures/Fig4.pdf"),p_tot,width = 8,height = 9)
 
 
-## Fig : Feedbacks in N and C limited scenarios ----
+## >> Fig : Feedbacks in N and C limited scenarios ----
 
 
 
@@ -548,7 +548,7 @@ ggsave(paste0("./Figures/Fig_5.pdf"),p_feedback,width = 14,height = 7)
 
 #******************************************************************************#
 
-## 2) Fig N & C limited, secondary production ----
+## >> Fig N & C limited, secondary production ----
 for (scena in c("C-limited","N-limited")){
   type_prod="PP"
   d2=read.table(paste0("./Table/Space_rB_rP_",scena,"_phi_1.csv"),sep=";")
@@ -565,7 +565,7 @@ for (scena in c("C-limited","N-limited")){
     if (pl %in% c("PP2_T","PP1_T")) pal_col=pal_terr(100)
     if (pl %in% c("PP2_A","PP1_A")) pal_col=pal_aqua(100)
 
-    assign(paste0("p_",u),ggplot(filter(d2_melt,variable==pl))+geom_tile(aes(x=rP,y=rB,fill=value))+the_theme+
+    assign(paste0("p_",u),ggplot(filter(d2_melt,variable==pl))+geom_tile(aes(x=rP,y=rB,fill=value),width=1/200,height=1/200)+the_theme+
              labs(y=expression(paste("N:C decomposers (r"[B],")")),x=expression(paste("N:C plants (r"[P],")")),fill='')+ggtitle(name_plot[u])+
              scale_fill_gradientn(colors = pal_col)+geom_contour(aes(x=rP,y=rB,z=value),breaks = c(0),linetype=1,lwd=.01,color="black")+
              theme(plot.title = element_text(size=12)))
@@ -578,8 +578,8 @@ for (scena in c("C-limited","N-limited")){
   col_aq=pal_aqua(100)
   
   if (scena=="C-limited"){
-    p_1=p_1+scale_fill_gradientn(colours=col_terr,breaks=c(1.02,1.025,1.03))
-    p_2=p_2+scale_fill_gradientn(colours=col_aq,breaks=c(1.1,1.15,1.2))
+    p_1=p_1+scale_fill_gradientn(colours=col_aq,breaks=c(1.02,1.025,1.03))
+    p_2=p_2+scale_fill_gradientn(colours=col_terr,breaks=c(1.1,1.15,1.2))
     
   }
   if (scena=="N-limited"){
@@ -590,12 +590,12 @@ for (scena in c("C-limited","N-limited")){
   
 }
 p=ggarrange(p_tileC,p_tileN,ncol=1,nrow=2,labels=LETTERS[1:2],hjust=-2)
-ggsave("./Figures/SI/Secondary_production.pdf",p,width = 7,height = 6)
+ggsave("./Figures/SI/Secondary_production.pdf",p,width = 7,height = 7)
 
 
 
 
-## Exported flows ----
+## >> Exported flows ----
 
 #C-limited
 
@@ -656,7 +656,7 @@ p_rP=ggarrange(p2_C,p2_N+labs(y=""),ncol=2,heights = c(1,1),common.legend = T,
 p_tot=ggarrange(p_rB,p_rP,nrow=2,labels = LETTERS[1:2],hjust=-2)
 ggsave(paste0("./Figures/SI/Flows_exported.pdf"),p_tot,width = 9,height = 6)
 
-## Consumers density ----
+## >> Consumers density ----
 d=read.table("./Table/Mecanism_consumers_rB_C-limited.csv",sep=";")
 p_consum1_C=ggplot(d%>%melt(., measure.vars=c("Herbivores_C","Consumers_C"))%>%
                      mutate(., variable=recode_factor(variable,"Herbivores_C"=" ","Consumers_C"="  ")))+
@@ -722,7 +722,7 @@ p_tot=ggarrange(p_rB,p_rP,nrow=2,labels = LETTERS[1:2])
 ggsave(paste0("./Figures/SI/Consumers_density.pdf"),p_tot,width = 9,height = 6)
 
 
-## Feedback N limited, biotic abiotic pools ----
+## >> Feedback N limited, biotic abiotic pools ----
 
 scena="N-limited"
 phi_keep=seq(0,1,length.out=100)[round(seq(1,100,length.out=12))]
@@ -810,13 +810,13 @@ dev.off()
 
 
 
-## Change in N:C of detritus ----
+## >> Change in N:C of detritus ----
 
 d_tot=tibble()
 for (s in c("C-limited","N-limited","Colimitation")){
   
   d2=read.table(paste0("./Table/Feedback_",s,".csv"),sep=";")
-  phi_keep=seq(0,1,length.out=ifelse(s=="N-limited",100,30))[round(seq(1,ifelse(s=="N-limited",100,30),length.out=12))]
+  phi_keep=seq(0,1,length.out=100)[round(seq(1,100,length.out=12))]
   
   d2_mean_rep=d2 %>% filter(.,Scenario==s,round(Phi,6) %in% round(phi_keep,6)) %>%
     group_by(.,Scenario,rB,rP,Phi)%>%
@@ -886,7 +886,7 @@ p=ggarrange(p_ter,p_aq,p_slim,nrow=3,labels = LETTERS[1:3], font.label = list(si
 ggsave("./Figures/SI/Detritus_N_C.pdf",p,width = 8,height = 8)
 
 
-## Adding top predators ----
+## >> Adding top predators ----
 for (scena in c("C-limited","N-limited")){
   type_prod="PP"
   d2=read.table(paste0("./Table/Space_rB_rP_",scena,"_phi_Top_pred_1.csv"),sep=";")
@@ -1050,7 +1050,7 @@ for (s in c("C-limited","N-limited")){
   
 }
 
-## Donnor Control scenario ----
+## >> Donnor Control scenario ----
 for (scena in c("C-limited","N-limited")){
   type_prod="PP"
   d2=read.table(paste0("./Table/Space_rB_rP_",scena,"_phi_1_DC_.csv"),sep=";")
@@ -1197,7 +1197,7 @@ ggsave(paste0("./Figures/SI/Feedback_DC.pdf"),p_feedback_dc,width = 12,height = 
 
 
 
-## Transient increase coupling ----
+## >> Transient increase coupling ----
 ode_metaecosystem=function(t,state,param){
   "Main function for the meta-ecosystem model"
   
@@ -1409,104 +1409,7 @@ ggsave("./Figures/SI/Pulse_coupling_effects2.pdf",p_tot,width =10,height = 14 )
 
 
 
-## Varying the parameters ----
-
-n_point=15
-for (resource in c("N","C")){
-  
-  assign("list_sensi",list.files("./Table/",pattern = paste0(resource,"-limited")))
-  
-  d=tibble()
-  
-  for (fi in list_sensi){d_n=read.table(paste0("./Table/",fi),sep=";")
-  
-  d_n <- do.call(data.frame, # Replace Inf in data by NA
-                 lapply(d_n,function(x) replace(x, is.infinite(x), NA)))
-  
-  d=rbind(d,d_n)  
-  }
-  
-  
-  d_all=tibble()
-  param_name=unlist(strsplit(list_sensi,"_"))[    grep(unlist(strsplit(list_sensi,"_")),pattern = ".csv")]
-  param_name=gsub(".csv","",param_name)
-  
-  for (k in 1:length(param_name)){
-    
-    d_param=d[((4*n_point)*(k-1)+1):(4*n_point*k),]
-    d_param$beta_H=d_param$rP-d_param$eH*d_param$rH
-    d_param=filter(d_param,beta_H>=0)
-    
-    
-    d_all=rbind(d_all,tibble(LRR_PP1_A=d_param$LRR_PP1_A,LRR_PP1_T=d_param$LRR_PP1_T,LRR_PP2_A=d_param$LRR_PP2_A,
-                             LRR_PP2_T=d_param$LRR_PP2_T,Value=d_param[,param_name[k]],
-                             rP=d_param$rP,rB=d_param$rB)%>%add_column(name_param=param_name[k]))
-  }
-  
-  
-  param=Get_classical_param(scena = paste0(resource,"-limited"))
-  
-  d2_melt=melt(d_all , measure.vars = c(paste0("LRR_PP1_A"),paste0("LRR_PP1_T"),paste0("LRR_PP2_A")))%>%
-    mutate(., variable=recode_factor(variable,"LRR_PP1_A"="Aq. basal prod.","LRR_PP1_T"="Terr. basal prod.","LRR_PP2_A"="Aq. sec. prod."))
-  for (k in unique(d2_melt$name_param)){
-    if (resource=="N")    list_name_prod=c("eB","dB","IDa","lDa","ma",'aC')
-    if (resource=="C")    list_name_prod=c("eB","dB","IDa","lDa","aBD","ma")
-    
-    
-    if (k %in% list_name_prod){
-      
-      dplot=filter(d2_melt,name_param==k)
-      assign(paste0("p_",k),ggplot(dplot)+geom_line(aes(x=Value,y=value,color=interaction(rP,rB)))+the_theme+scale_color_viridis(discrete = T)+
-               labs(y="LRR",x=k)+facet_wrap(.~variable,ncol=4,scales = "free")+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
-                                                                                     axis.title = element_text(size=7),axis.text.x = element_text(size=4),
-                                                                                     axis.text.y = element_text(size=4),axis.title.x = element_text(size=6),axis.title.y = element_text(size=6),
-                                                                                     strip.text.x = element_text(size=5),strip.text.y = element_text(size=5),legend.text = element_text(size=7),
-                                                                                     legend.title = element_text(size=7))+
-               geom_vline(xintercept = param[[k]],color="gray50",lwd=.1))
-    } else{
-      
-      dplot=filter(d2_melt,name_param==k)%>%
-        mutate(.,variable=recode_factor(variable,
-                                        "Basal prod. aq."='',"Basal prod. terr."="  ","Cons. prod. aq." = "   "))
-      assign(paste0("p_",k),ggplot(dplot)+geom_line(aes(x=Value,y=value,color=interaction(rP,rB)))+the_theme+scale_color_viridis(discrete = T)+
-               labs(y="LRR",x=k)+facet_wrap(.~variable,ncol=4,scales = "free")+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
-                                                                                     axis.title = element_text(size=7),axis.text.x = element_text(size=4),
-                                                                                     axis.text.y = element_text(size=4),axis.title.x = element_text(size=6),axis.title.y = element_text(size=6),
-                                                                                     strip.text.x = element_text(size=5),strip.text.y = element_text(size=5),legend.text = element_text(size=7),
-                                                                                     legend.title = element_text(size=7),)+
-               geom_vline(xintercept = param[[k]],color="gray50",lwd=.1))
-    }
-  }
-  
-  if (resource=="N"){
-    p_attack=ggarrange(p_aC,p_aP,p_aH,nrow=3,common.legend = T,legend = "bottom")
-    ggsave(paste0("./Figures/SI/Sensi_param/Sensibility_all_param_",resource,"_limited_attack.pdf"),p_attack,width = 4,height = 4)
-    
-  }  else{
-    p_attack=ggarrange(p_aBD,p_aC,p_aP,p_aH,nrow=4,common.legend = T,legend = "bottom")
-    ggsave(paste0("./Figures/SI/Sensi_param/Sensibility_all_param_",resource,"_limited_attack.pdf"),p_attack,width = 4,height = 5)
-    
-  }
-  
-  
-  p_decay=ggarrange(p_dB,p_dC,p_dP,p_dH,nrow=4,common.legend = T,legend = "bottom")
-  ggsave(paste0("./Figures/SI/Sensi_param/Sensibility_all_param_",resource,"_limited_decay.pdf"),p_decay,width = 4,height = 5)
-  
-  p_conversion=ggarrange(p_eB,p_eC,p_eH,nrow=3,common.legend = T,legend = "bottom")
-  ggsave(paste0("./Figures/SI/Sensi_param/Sensibility_all_param_",resource,"_limited_conversion.pdf"),p_conversion,width = 4,height = 4)
-  
-  p_mineralisation=ggarrange(p_ma,p_mt,nrow=2,common.legend = T,legend = "bottom")
-  ggsave(paste0("./Figures/SI/Sensi_param/Sensibility_all_param_",resource,"_limited_minera.pdf"),p_mineralisation,width = 4,height = 3)
-  
-  p_input=ggarrange(p_IDa,p_IDt,p_INa,p_INt,nrow=4,common.legend = T,legend = "bottom")
-  ggsave(paste0("./Figures/SI/Sensi_param/Sensibility_all_param_",resource,"_limited_input.pdf"),p_input,width = 4,height = 5)
-  
-  p_leaching=ggarrange(p_lDa,p_lDt,p_lNa,p_lNt,nrow=4,common.legend = T,legend = "bottom")
-  ggsave(paste0("./Figures/SI/Sensi_param/Sensibility_all_param_",resource,"_limited_leaching.pdf"),p_leaching,width = 4,height = 5)
-  
-  
-  
-}
+## >> Varying the parameters ----
 
 
 
@@ -1548,7 +1451,8 @@ for (resource in c("N","C")){
     Sensitivity_tab$IDa=seq(2,20,length.out=n_point)
   }
   
-  assign("list_sensi",list.files("./Table/",pattern = paste0(resource,"-limited")))
+  assign("list_sensi",list.files("./Table/",pattern = paste0("Sensitivity_indiv_param_",resource,"-limited")))
+  list_sensi=list_sensi[-grep("recy",x = list_sensi)]
   
   d=tibble()
   
@@ -1578,16 +1482,16 @@ for (resource in c("N","C")){
       
       
       #we computed the range of LRR over the range of parameter values explored
-      range_T1=((range(d_fil_nr$LRR_PP1_T)[1]-range(d_fil_nr$LRR_PP1_T)[2]))/(diff(range(d_fil_nr[,which(colnames(d_fil_nr)==param_name[k])])))
-      range_A2=((range(d_fil_nr$LRR_PP2_A)[1]-range(d_fil_nr$LRR_PP2_A)[2]))/(diff(range(d_fil_nr[,which(colnames(d_fil_nr)==param_name[k])])))
-      range_A1=((range(d_fil_nr$LRR_PP1_A)[1]-range(d_fil_nr$LRR_PP1_A)[2]))/(diff(range(d_fil_nr[,which(colnames(d_fil_nr)==param_name[k])])))
+      range_T1=((range(d_fil_nr$PP1_T)[1]-range(d_fil_nr$PP1_T)[2]))/(diff(range(d_fil_nr[,which(colnames(d_fil_nr)==param_name[k])])))
+      range_A2=((range(d_fil_nr$PP2_A)[1]-range(d_fil_nr$PP2_A)[2]))/(diff(range(d_fil_nr[,which(colnames(d_fil_nr)==param_name[k])])))
+      range_A1=((range(d_fil_nr$PP1_A)[1]-range(d_fil_nr$PP1_A)[2]))/(diff(range(d_fil_nr[,which(colnames(d_fil_nr)==param_name[k])])))
       
       #to account for decreasing effects of parameters
-      range_T1=ifelse(lm(as.formula(paste("LRR_PP1_T", paste(param_name[k]), sep="~")),data = d_fil_nr)$coefficients[2]<0,
+      range_T1=ifelse(lm(as.formula(paste("PP1_T", paste(param_name[k]), sep="~")),data = d_fil_nr)$coefficients[2]<0,
                       -range_T1,range_T1)
-      range_A2=ifelse(lm(as.formula(paste("LRR_PP2_A", paste(param_name[k]), sep="~")),data = d_fil_nr)$coefficients[2]<0,
+      range_A2=ifelse(lm(as.formula(paste("PP2_A", paste(param_name[k]), sep="~")),data = d_fil_nr)$coefficients[2]<0,
                       -range_A2,range_A2)
-      range_A1=ifelse(lm(as.formula(paste("LRR_PP1_A", paste(param_name[k]), sep="~")),data = d_fil_nr)$coefficients[2]<0,
+      range_A1=ifelse(lm(as.formula(paste("PP1_A", paste(param_name[k]), sep="~")),data = d_fil_nr)$coefficients[2]<0,
                       -range_A1,range_A1)
       
       
@@ -1633,9 +1537,87 @@ for (resource in c("N","C")){
 }
 
 #ploting the results
-p_slope=ggarrange(p_ma,ggarrange(p_C+labs(x=""),p_N,nrow=2,common.legend = T,legend = "bottom",
-                                 labels=LETTERS[2:3], font.label = list(size = 19),
-                                 hjust=-2,vjust = -1),nrow=2,labels=c(LETTERS[1],""),heights = c(1,2),hjust=-3)
-ggsave("./Figures/SI/Slopes_variation.pdf",p_slope,width = 7,height = 7)
+p_slope=ggarrange(p_C+labs(x=""),p_N,nrow=2,common.legend = T,legend = "bottom",
+                                 labels=LETTERS[1:2], font.label = list(size = 19),
+                                 hjust=-2)
+ggsave("./Figures/SI/Slopes_variation.pdf",p_slope,width = 7,height = 6)
+
+
+
+
+n_point=15
+for (resource in c("N","C")){
+  
+  assign("list_sensi",list.files("./Table/",pattern = paste0("Sensitivity_indiv_param_",resource,"-limited")))
+  list_sensi=list_sensi[-grep("recy",x = list_sensi)]
+  
+  d=tibble()
+  
+  for (fi in list_sensi){d_n=read.table(paste0("./Table/",fi),sep=";")
+  
+  d_n <- do.call(data.frame, # Replace Inf in data by NA
+                 lapply(d_n,function(x) replace(x, is.infinite(x), NA)))
+  
+  d=rbind(d,d_n)  
+  }
+  
+  
+  d_all=tibble()
+  param_name=unlist(strsplit(list_sensi,"_"))[    grep(unlist(strsplit(list_sensi,"_")),pattern = ".csv")]
+  param_name=gsub(".csv","",param_name)
+  
+  for (k in 1:length(param_name)){
+    
+    d_param=d[((4*n_point)*(k-1)+1):(4*n_point*k),]
+    d_param$beta_H=d_param$rP-d_param$eH*d_param$rH
+    d_param=filter(d_param,beta_H>=0)
+    
+    
+    d_all=rbind(d_all,tibble(PP1_A=d_param$PP1_A,PP1_T=d_param$PP1_T,PP2_A=d_param$PP2_A,
+                             PP2_T=d_param$PP2_T,Value=d_param[,param_name[k]],
+                             rP=d_param$rP,rB=d_param$rB)%>%add_column(name_param=param_name[k]))
+  }
+  
+  
+  param=Get_classical_param(scena = paste0(resource,"-limited"))
+  
+  d2_melt=melt(d_all , measure.vars = c(paste0("PP1_A"),paste0("PP1_T"),paste0("PP2_A")))%>%
+    mutate(., variable=recode_factor(variable,"PP1_A"="Aq. basal prod.","PP1_T"="Terr. basal prod.","PP2_A"="Aq. sec. prod."))
+  for (k in c("aP","aH","dH","eH")){
+    if (resource=="N")    list_name_prod=c("eB","dB","IDa","lDa","ma",'aC')
+    if (resource=="C")    list_name_prod=c("eB","dB","IDa","lDa","aBD","ma")
+    
+    
+    if (k %in% list_name_prod){
+      
+      dplot=filter(d2_melt,name_param==k)
+      assign(paste0("p_",k),ggplot(dplot)+geom_line(aes(x=Value,y=value,color=interaction(rP,rB)))+the_theme+scale_color_viridis(discrete = T)+
+               labs(y="LRR",x=k,color="rP, rB")+facet_wrap(.~variable,ncol=4,scales = "free")+
+               theme(strip.background=element_rect(colour="transparent",fill="transparent"),strip.text.x = element_text(size=12))+
+               geom_vline(xintercept = param[[k]],color="gray50",lwd=.1))
+    } else{
+      
+      dplot=filter(d2_melt,name_param==k)%>%
+        mutate(.,variable=recode_factor(variable,
+                                        "Basal prod. aq."='',"Basal prod. terr."="  ","Cons. prod. aq." = "   "))
+      assign(paste0("p_",k),ggplot(dplot)+geom_line(aes(x=Value,y=value,color=interaction(rP,rB)))+the_theme+scale_color_viridis(discrete = T)+
+               labs(y="Production",x=k,color="rP, rB")+facet_wrap(.~variable,ncol=4,scales = "free")+
+               theme(strip.background=element_rect(colour="transparent",fill="transparent"),strip.text.x = element_text(size=12))+
+               geom_vline(xintercept = param[[k]],color="gray50",lwd=.1))
+    }
+  }
+  
+  
+  p_tot=ggarrange(p_aP,
+                       p_aH+theme(strip.text.x = element_blank()),
+                       p_dH+theme(strip.text.x = element_blank()),
+                       p_eH+theme(strip.text.x = element_blank()),
+                       nrow=4,common.legend = T,legend = "bottom")
+  
+  ggsave(paste0("./Figures/SI/Sensibility_all_param_",resource,"_limited.pdf"),p_tot,width = 8,height = 9)
+  
+  
+  
+}
 
 
