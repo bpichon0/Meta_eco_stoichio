@@ -16,10 +16,10 @@ source("Stoichio_functions.R")
 
 #******************************************************************************#
 
-# Step 1: Simulations for main text ----
+# ----------------------Step 1: Simulations for main text ------------------
 
 #******************************************************************************#
-## Mapping ecosystem production in the rP and rB space for delta_X = 1 ----
+## >> Mapping ecosystem production in the rP and rB space for delta_X = 1 ----
 
 
 
@@ -133,7 +133,7 @@ for (rowspace in 1:nrow(scenario_space)){
 
 
 
-## Mechanisms N-limitation ----
+## >> Mechanisms N-limitation ----
 
 # effect of rB
 phi_seq=c(1);scena=c("no delta_C","all");d=tibble()
@@ -204,7 +204,7 @@ write.table(d,"./Table/Mecanism_herbivores_rP.csv",sep=";")
 
 
 
-## Mechanisms C-limitation ----
+## >> Mechanisms C-limitation ----
 
 #effect of rB
 phi_seq=c(1);scena=c("no delta_C","all");d=tibble()
@@ -274,7 +274,7 @@ write.table(d,"./Table/Mecanism_herbivores_rP_C-limited.csv",sep=";")
 
 
 
-## Simulations on feedback----
+## >> Simulations on feedback----
 
 
 n_point=100;p_coup=1;  
@@ -333,7 +333,7 @@ for (s in c("C-limited",'N-limited',"Colimitation")){
 
 
 
-## Meta-ecosystem scale metrics ----
+## >> Meta-ecosystem scale metrics ----
 
 n_point=30;p_coup=1;  
 param_space=expand.grid(rP=c(1/10,1/40),rB=c(0.12,0.25));p_seq=seq(0,1,length.out=n_point)
@@ -394,12 +394,12 @@ for (s in c("C-limited",'N-limited')){
 
 #******************************************************************************#
 
-# Step 2: Simulation for SI ----
+# --------------------- Step 2: Simulation for SI ------------
 
 #******************************************************************************#
 
-## Sensitivity on the food-webs structure: adding a top predator ----
-### Stoichiometry space----
+## >> Sensitivity on the food-webs structure: adding a top predator ----
+### >> Stoichiometry space----
 n_point=20;p_coup=1
 param_space=expand.grid(rP=seq(1/10,1/40,length.out=n_point),rB=seq(0.12,0.25,length.out=n_point))
 scenario_space=tibble(Name_scena=c("C-limited",'N-limited'),type_ode=c(rep("topconsum",2)),
@@ -503,7 +503,7 @@ for (rowspace in 1:nrow(scenario_space)){
 
 
 
-### Feedback ----
+### >> Feedback ----
 
 n_point=50;p_coup=1;  
 param_space=expand.grid(rP=c(1/10,1/40),rB=c(.12,0.25));p_seq=seq(0,1,length.out=n_point)
@@ -564,8 +564,8 @@ for (s in c('C-limited',"N-limited")){
   
 }
 
-## Donnor-control scenario ----
-### Stoichiometry space ----
+## >> Donnor-control scenario ----
+### >> Stoichiometry space ----
 n_point=20;p_coup=1
 param_space=expand.grid(rP=seq(1/10,1/40,length.out=n_point),rB=seq(0.12,0.25,length.out=n_point))
 scenario_space=tibble(Name_scena=c("C-limited",'N-limited'),type_ode=c(rep("DC",2)),
@@ -664,7 +664,7 @@ for (rowspace in 1:nrow(scenario_space)){
 }#end scenario limitation
 
 
-### Feedback ----
+### >> Feedback ----
 
 n_point=100;p_coup=1;  
 param_space=expand.grid(rP=c(1/10,1/40),rB=c(0.12,0.25));p_seq=seq(0,1,length.out=n_point)
@@ -715,7 +715,7 @@ for (s in c('C-limited','N-limited')){
   
 }
 
-## Varying the parameters ----
+## >> Varying the parameters ----
 stoichio_seq=expand.grid(rB=seq(0.12,.25,length.out=2),rP=seq(0.025,.1,length.out=2))
 delta_X=1;n_point=15
 Sensitivity_tab=list(
