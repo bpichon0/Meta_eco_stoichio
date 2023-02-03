@@ -108,27 +108,6 @@ p_save3= ggplot(d_cross) +
 
 rectangle=tibble(xmin=c(.5,2.7),xmax=c(2.3,4.5),ymin=c(0,0),ymax=rep(max(d_cross$Flow),2),name=c("N","C"))
 
-# p_save1=ggplot(NULL)+
-#   
-#   geom_boxplot(data=d_cross,aes(x=interaction(Coupling,Resource),y=Flow,group=interaction(Coupling,Resource)),width=0.4,outlier.shape = NA,color="white",fill="gray50",
-#                position = position_dodge(width = 1),alpha=.4)+ 
-#   
-#   geom_point(data=d_cross,aes(x=interaction(Coupling,Resource),y=Flow,color=Mattyp2,group=interaction(Mattyp2,Coupling,Resource)),
-#              position=position_jitterdodge(dodge.width=.4,jitter.width=.05),alpha=.8)+ 
-#   
-#   geom_rect(data=NULL,aes(xmin=.5,xmax=2.35,ymin=0,ymax=max(d_cross$Flow)),alpha=.1,fill="#D2B96F")+
-#   geom_rect(data=NULL,aes(xmin=2.65,xmax=4.5,ymin=0,ymax=max(d_cross$Flow)),alpha=.1,fill="#AC86DA")+
-#   
-#   scale_y_continuous(trans = "log10",breaks = c(0.01,0.1,1,10,100))+the_theme+
-#   theme(legend.position = "bottom")+
-#   scale_color_manual(values=col_matt_type)+
-#   scale_x_discrete(labels=c("Fresh. to terr.", "Terr. to fresh." ,"Fresh. to terr.", "Terr. to fresh."))+
-#   labs(x="",fill="",y=expression(paste("Cross-ecosystem flows of resources (g.",m^{"-2"},".", yr^{"-1"},")")),shape="",color="")+
-#   guides(shape=F)+theme(axis.title.y = element_text(size=10),axis.text.x = element_text(size=10))+
-#   annotate("text",x=1:4,y=5e3,label=paste0(round((d_cross%>% group_by(Resource,Coupling) %>% summarise(Mean_flow=mean(Flow),.groups = "keep"))$Mean_flow,2)),
-#            size=3)+
-#   annotate("text",x=1:4,y=0.0001,label=paste0("n = ",as.numeric(table(d_cross$Coupling,d_cross$Resource))),size=3)+
-#   the_theme+theme(axis.title.x = element_blank())
 
 
 p_save1=ggplot(NULL)+
@@ -157,19 +136,6 @@ p_save1=ggplot(NULL)+
   geom_text(data=tibble(text=c("Carbon","Nitrogen"),x=c(1.5,3.5),y=c(3e2,3e2)),aes(x=x,y=y,label=text),fontface = "bold")+
   guides(color = guide_legend(override.aes = list(size = 4)))
 
-# p1 = ggplot(d_cross%>%group_by(., Mattyp1,Coupling)%>%summarise(.groups = "keep",mean_flow=mean(Flow)), 
-#             aes(x = "", y = mean_flow, fill = interaction(Mattyp1,Coupling),color=interaction(Mattyp1,Coupling))) +
-#   geom_col() +
-#   coord_polar(theta = "y")+theme_transparent()+labs(fill="Distribution of aquatic-terrestrial resource fluxes",
-#                                                     color="Distribution of aquatic-terrestrial resource fluxes")+
-#   scale_fill_manual(values=c("#74BEEF","#6474DE","#03116B","#CA813A","#000000","#CA8686","gray","#CA3A3A",
-#                              "#66A46A","#87D45F"),
-#                     labels=c("Aqu. insects (n = 156)","Aqu. carcass (n = 28)","Aqu. amphib. (n = 26)","Terr. carcass (n = 2)","Terr. DOC (n = 1)","Terr. mammal faeces (n = 4)",
-#                              "Terr. POC (n = 3)","Terr. amphib. (n = 24)","Terr. inverteb. (n = 123)","Terr. plants (n = 161)","Terr. "))+
-#   scale_color_manual(values=c("#74BEEF","#6474DE","#03116B","#CA813A","#000000","#CA8686","gray","#CA3A3A",
-#                               "#66A46A","#87D45F"),
-#                      labels=c("Aqu. insects (n = 156)","Aqu. carcass (n = 28)","Aqu. amphib. (n = 26)","Terr. carcass (n = 2)","Terr. DOC (n = 1)","Terr. mammal faeces (n = 4)",
-#                               "Terr. POC (n = 3)","Terr. amphib. (n = 24)","Terr. inverteb. (n = 123)","Terr. plants (n = 161)","Terr. "))
 
 d_stoichio=read.table("./Empirical_data/Stoichio_NC.csv",sep=";")
 
@@ -665,7 +631,7 @@ p_consum1_C=ggplot(d%>%melt(., measure.vars=c("Herbivores_C","Consumers_C"))%>%
   the_theme+facet_wrap(.~variable,scales = "free",ncol=2)+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
                                                                 axis.title = element_text(size=9))+
   labs(x=expression(paste("N:C decomposers (r"[B],")")),y="Carbon content",color="",shape="")+
-  scale_color_manual(values=(c(col.alpha("red",.3),col.alpha("red",.9))),labels=c("Grazers","Consumers"))+
+  scale_color_manual(values=(c("#298FB1",col.alpha("red",.9))),labels=c("Grazers","Consumers"))+
   scale_shape_manual(values=c(21,0),labels=c(TeX("$\\Delta_C=1$"),TeX("$\\Delta_C=0$")))
 
 
@@ -677,7 +643,7 @@ p_consum2_C=ggplot(d%>%melt(., measure.vars=c("Herbivores_C","Consumers_C"))%>%
   the_theme+facet_wrap(.~variable,scales = "free",ncol=2)+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
                                                                 axis.title = element_text(size=9))+
   labs(x=expression(paste("N:C plants (r"[P],")")),y="Carbon content",color="",shape="")+
-  scale_color_manual(values=(c(col.alpha("red",.3),col.alpha("red",.9))),labels=c("Grazers","Consumers"))+
+  scale_color_manual(values=(c("#298FB1",col.alpha("red",.9))),labels=c("Grazers","Consumers"))+
   scale_shape_manual(values=c(21,0),labels=c(TeX("$\\Delta_G=1$"),TeX("$\\Delta_G=0$")))
 
 
@@ -691,7 +657,7 @@ p_consum1_N=ggplot(d%>%melt(., measure.vars=c("Herbivores_C","Consumers_C"))%>%
   the_theme+facet_wrap(.~variable,scales = "free",ncol=2)+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
                                                                 axis.title = element_text(size=9))+
   labs(x=expression(paste("N:C decomposers (r"[B],")")),y="Carbon content",color="",shape="")+
-  scale_color_manual(values=(c(col.alpha("red",.3),col.alpha("red",.9))),labels=c("Grazers","Consumers"))+
+  scale_color_manual(values=(c("#298FB1",col.alpha("red",.9))),labels=c("Grazers","Consumers"))+
   scale_shape_manual(values=c(21,0),labels=c(TeX("$\\Delta_C=1$"),TeX("$\\Delta_C=0$")))
 
 
@@ -705,7 +671,7 @@ p_consum2_N=ggplot(d%>%melt(., measure.vars=c("Herbivores_C","Consumers_C"))%>%
   the_theme+facet_wrap(.~variable,scales = "free",ncol=2)+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
                                                                 axis.title = element_text(size=9))+
   labs(x=expression(paste("N:C plants (r"[P],")")),y="Carbon content",color="",shape="")+
-  scale_color_manual(values=(c(col.alpha("red",.3),col.alpha("red",.9))),labels=c("Grazers","Consumers"))+
+  scale_color_manual(values=(c("#298FB1",col.alpha("red",.9))),labels=c("Grazers","Consumers"))+
   scale_shape_manual(values=c(21,0),labels=c(TeX("$\\Delta_G=1$"),TeX("$\\Delta_G=0$")))
 
 
@@ -836,7 +802,7 @@ p_ter=ggplot(d_tot%>% filter(., rP==.025))+
   facet_wrap(Scenario~.,ncol=3)+
   
   scale_shape_manual(values=c(1,0))+
-  the_theme+labs(x=TeX("$ \\Delta_X$"),y="N:C terr. detritus",
+  the_theme+labs(x=TeX("$ \\Delta$"),y="N:C terr. detritus",
                  shape=expression(paste("N:C decomposers (r"[B],")   ")))+
   theme(plot.title = element_text(size=11),axis.text = element_text(size=10),
         axis.title.y = element_text(size=12),legend.position = "bottom",
@@ -856,7 +822,7 @@ p_aq=ggplot(d_tot%>% filter(., rB==.12))+
   facet_wrap(Scenario~.,ncol=3)+
   
   scale_shape_manual(values=c(1,2))+
-  the_theme+labs(x=TeX("$ \\Delta_X$"),y="N:C aq. detritus",
+  the_theme+labs(x=TeX("$ \\Delta$"),y="N:C aq. detritus",
                  shape=expression(paste("N:C plants (r"[P],")")))+
   theme(plot.title = element_text(size=11),axis.text = element_text(size=10),
         axis.title.y = element_text(size=12),legend.position = "bottom",
@@ -871,7 +837,7 @@ p_slim=ggplot(d_tot%>% filter(.))+
   facet_wrap(Scenario~.,ncol=3,scales = "free")+
   
   scale_shape_manual(values=c(1,2,5,0))+
-  the_theme+labs(x=TeX("$ \\Delta_X$"),y=expression(paste("S"[lim])),
+  the_theme+labs(x=TeX("$ \\Delta$"),y=expression(paste("S"[lim])),
                  shape=expression(paste("N:C plants (r"[P],"), N:C decomposers (r"[B],")   ")))+
   theme(plot.title = element_text(size=11),axis.text = element_text(size=10),
         axis.title.y = element_text(size=12),legend.position = "bottom",
@@ -1619,5 +1585,43 @@ for (resource in c("N","C")){
   
   
 }
+
+
+
+## >> Switching limitation ----
+
+limitation=tibble()
+param=Get_classical_param(scena = "Switch-C-N")
+for (i in seq(0,1,length.out=50)){
+  
+  param[c("pP",'pB','pC','pG')]=i
+  state=Get_initial_values(param)
+  
+  data_save=Compute_ode(state,param,optim_time = F,n_time = 10000,
+                        type_ode = "full")
+  Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
+  limit=Get_limitation(Eq$Eq,param)
+  limitation=rbind(limitation,Eq$Eq%>%add_column(., Limitation=limit$Limitation,Ratio=limit$Ratio,Coupling=i))
+}
+
+p=ggplot(limitation%>%
+         melt(., measure.vars=c("Ratio","Herbivores_C","Consumers_C"))%>%
+         mutate(., variable=recode_factor(variable,"Ratio"="Slim",
+                                          "Herbivores_C"="Grazers",
+                                          "Consumers_C"="Consumer of decomposers")))+
+  geom_line(aes(x=Coupling,y=value))+
+  facet_wrap(.~variable,scales = "free")+the_theme+
+  labs(x=TeX("$\\Delta$"),y="")+
+  theme(strip.background.x = element_blank())+
+  geom_line(data=tibble(variable="Slim",x=seq(0,1,length.out=100),y=1),aes(x=x,y=y),color="red")+
+  geom_text(data=tibble(variable="Slim",x=c(.7,.3),y=c(.83,1.1),name=c("C-limited","N-limited")),
+            aes(x=x,y=y,label=name,color=name),fontface="bold")+
+  geom_vline(data=tibble(variable=c("Consumer of decomposers","Grazers"),
+                         x=rep(limitation$Coupling[min(which(limitation$Ratio>1))],2)),
+             aes(xintercept=x),color="red")+
+  scale_color_manual(values=c("#B3925F","#8340A2"))+
+  theme(legend.position = "none",strip.text.x = element_text(size=12),axis.title.x = element_text(size=16))
+
+ggsave("./Figures/SI/Switching_limitation.pdf",width = 8,height = 3)
 
 

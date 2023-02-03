@@ -5,11 +5,6 @@ library(igraph)
 library(rethinking)
 library(ggforce)
 library(ggnewscale)
-library(JuliaCall)
-library(diffeqr)
-julia_setup()
-de = diffeq_setup()
-julia_library("DifferentialEquations")
 
 the_theme=theme_classic()+theme(legend.position = "bottom",
                                 strip.background = element_rect(fill = "#CCE8D8"),

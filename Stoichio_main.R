@@ -9,6 +9,12 @@ library(latex2exp)
 library(RColorBrewer)
 library(viridis)
 library(ggpattern)
+library(JuliaCall)
+library(diffeqr)
+julia_setup()
+de = diffeq_setup()
+
+julia_library("DifferentialEquations")
 
 dir.create("./Figures/",showWarnings = F)
 dir.create("./Table/",showWarnings = F)
@@ -714,6 +720,7 @@ for (s in c('C-limited','N-limited')){
   write.table(d ,paste0("./Table/Feedback_all_eq_",s,"_DC.csv"),sep=";")
   
 }
+
 
 ## >> Varying the parameters ----
 stoichio_seq=expand.grid(rB=seq(0.12,.25,length.out=2),rP=seq(0.025,.1,length.out=2))
