@@ -23,6 +23,15 @@ pal_terr=colorRampPalette(rev(c("#023C0F","#016B19","#479C4D","#74B178","#B1D6B4
 colors = c("Consumers" = "darkorange", "Producers" = "green3", "Nitrogen" = "darkorchid2","Detritus"="brown")#,"top_predator"="red")
 colors_ecosystem=c('Aquatic'='#90D0E0','Terrestrial'="#7AA969");color_resources=c('N'='#90D0E0','C'="brown")
 
+## Creating folders
+
+dir.create("./Figures/",showWarnings = FALSE)
+dir.create("./Figures/SI",showWarnings = FALSE)
+dir.create("./Table/",showWarnings = FALSE)
+
+
+
+
 # 1 ---> Main functions ----
 ## A) Parameters and dynamics related function ----
 ### Parameters ----
@@ -2023,5 +2032,3 @@ Plot_meta_ecosystem_graph=function(data_save,data,param){
     
 
 }
-
-

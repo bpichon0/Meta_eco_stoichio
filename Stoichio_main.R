@@ -16,8 +16,6 @@ de = diffeq_setup()
 
 julia_library("DifferentialEquations")
 
-dir.create("./Figures/",showWarnings = F)
-dir.create("./Table/",showWarnings = F)
 source("Stoichio_functions.R")
 
 #******************************************************************************#
@@ -843,7 +841,3 @@ for (Scena in c("N-limited","C-limited")){ #for each scenario of limitation
     
   }# end main loop in different parameters
 }
-
-
-
-
