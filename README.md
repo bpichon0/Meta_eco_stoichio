@@ -5,7 +5,7 @@ Contact: Benoît Pichon, *benoit.pichon0@gmail.com*
 
 
 <p align="center">
-    <img src="https://github.com/bpichon0/Meta_eco_stoichio/Example/blob/master/Example/Aquatic_terrestrial_ecotone.jpg" width="500">
+    <img src="https://github.com/bpichon0/Meta_eco_stoichio/blob/master/Example/Aquatic_terrestrial_ecotone.jpg" width="500">
 </p>
 
 
@@ -45,7 +45,7 @@ The model is displayed bellow, it simulates the dynamics of carbon and nitrogen 
 
 
 <p align="center">
-    <img src="https://github.com/bpichon0/Meta_eco_stoichio/Example/blob/master/Example/Model.jpg" width="500">
+    <img src="https://github.com/bpichon0/Meta_eco_stoichio/blob/master/Example/Model.jpg" width="500">
 </p>
 
 Let's take an example of a simulation where decomposers are carbon-limited and there is spatial flows coupling both ecosystems.
@@ -63,7 +63,7 @@ plot_dynamics(data_save) #displaying the dynamics
 ```
 
 <p align="center">
-    <img src="https://github.com/bpichon0/Meta_eco_stoichio/Example/blob/master/Example/Dynamics.svg" width="500">
+    <img src="https://github.com/bpichon0/Meta_eco_stoichio/blob/master/Example/Dynamics.svg" width="500">
 </p>
 
 
@@ -75,5 +75,5 @@ Plot_meta_ecosystem_graph(Eq$Eq,Eq$Eq,param)
 ```
 
 <p align="center">
-    <img src="https://github.com/bpichon0/Meta_eco_stoichio/Example/blob/master/Example/Stocks.svg" width="500">
+    <img src="https://github.com/bpichon0/Meta_eco_stoichio/blob/master/Example/Stocks.svg" width="500">
 </p>
