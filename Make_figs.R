@@ -1,11 +1,4 @@
 rm(list=ls())
-library(tidyverse)
-library(reshape2)
-library(ggtext)
-library(ggpubr)
-library(latex2exp)
-library(RColorBrewer)
-library(viridis)
 
 source("Stoichio_functions.R")
 dir.create("./Figures/",showWarnings = F)
@@ -234,7 +227,7 @@ for (scena in c("C-limited","N-limited")){
     assign(paste0("param_",i),param)
     
     state=Get_initial_values(param)
-    data=Compute_ode(state,param,optim_time = F)
+    data=Compute_ode(state,param)
     assign(paste0("Eq_",i),Extract_equilibrium_from_dynamics(data,param)$Eq)
     
   }
@@ -1286,8 +1279,7 @@ Get_transient_dynamics=function(way="T",phi=0,limitation="C-limited",NCplant=.02
                         "Plants_N","Decomposers_C","Decomposers_N","Detritus_T_C","Detritus_T_N",
                         "Detritus_A_C","Detritus_A_N","Nitrogen_T_N","Nitrogen_A_N")
   
-  # plot_dynamics(data_save)
-  
+
   Eq1=Extract_equilibrium_from_dynamics(data_save,param)$Eq #Equilibrium
   
   
@@ -1597,7 +1589,7 @@ for (i in seq(0,1,length.out=50)){
   param[c("pP",'pB','pC','pG')]=i
   state=Get_initial_values(param)
   
-  data_save=Compute_ode(state,param,optim_time = F,n_time = 10000,
+  data_save=Compute_ode(state,param,n_time = 10000,
                         type_ode = "full")
   Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
   limit=Get_limitation(Eq$Eq,param)

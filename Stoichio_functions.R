@@ -5,6 +5,18 @@ library(igraph)
 library(rethinking)
 library(ggforce)
 library(ggnewscale)
+library(ggtext)
+library(ggpubr)
+library(latex2exp)
+library(RColorBrewer)
+library(viridis)
+library(rootSolve)
+library(JuliaCall)
+library(diffeqr)
+julia_setup()
+de = diffeq_setup()
+
+julia_library("DifferentialEquations")
 
 the_theme=theme_classic()+theme(legend.position = "bottom",
                                 strip.background = element_rect(fill = "#CCE8D8"),
@@ -990,49 +1002,48 @@ end
 
 
 
-Compute_ode=function(state,param,TRESH=1e-4,method_ode="lsoda",
-                     h=0.1,optim_time=T,consumers=T,n_time=5000,type_ode="full"){
+Compute_ode=function(state,param,TRESH=1e-5,method_ode="lsoda",
+                     consumers=T,n_time=10000,type_ode="full"){
   
   julia_assign("state", state)
   julia_assign("p", unlist(param))
   
   
-  if (optim_time==F){
-    tspan = c(0, n_time) #to avoid long transient
-    t = seq(0, n_time, by = 1)
-    julia_assign("tspan", tspan)
-    
-    if (type_ode=="full"){
-      prob = julia_eval("ODEProblem(ode_metaecosystem, state, tspan, p)")
-    } else if (type_ode=="feedback_T"){
-      prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_T_to_A, state, tspan, p)")
-    } else if (type_ode=="feedback_A"){
-      prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_A_to_T, state, tspan, p)")
-    } else if (type_ode=="topconsum"){
-      prob = julia_eval("ODEProblem(ode_metaecosystem_Topconsumers, state, tspan, p)")
-    } else if (type_ode=="DC"){
-      prob = julia_eval("ODEProblem(ode_metaecosystem_DC, state, tspan, p)")
-    } else if (type_ode=="feedback_A_DC"){
-      prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_A_to_T_DC, state, tspan, p)")
-    } else if (type_ode=="feedback_T_DC"){
-      prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_T_to_A_DC, state, tspan, p)")
-    } else if (type_ode=="feedback_T_topconsum"){
-      prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_T_to_A_topconsumers, state, tspan, p)")
-    } else if (type_ode=="feedback_A_topconsum"){
-      prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_A_to_T_topconsumers, state, tspan, p)")
-    }
-    
-    sol = de$solve(prob, de$Tsit5(), saveat = t)
-    d = as.data.frame(t(sapply(sol$u, identity)))
-    d$time=sol$t
-    
-    if (type_ode %in% c("topconsum","feedback_T_topconsum","feedback_A_topconsum")){ 
-      d=d[,c(ncol(d),1:(ncol(d)-1))]
-      names_for_col=c("Time","Top_cons_H_C","Top_cons_H_N","Top_cons_C_C","Top_cons_C_N","Herbivores_C","Herbivores_N","Consumers_C","Consumers_N","Plants_C","Plants_N","Decomposers_C","Decomposers_N","Detritus_T_C","Detritus_T_N","Detritus_A_C","Detritus_A_N","Nitrogen_T_N","Nitrogen_A_N")
-    } else {
-      d=d[,c(ncol(d),1:(ncol(d)-1))]
-      names_for_col=c("Time","Herbivores_C","Herbivores_N","Consumers_C","Consumers_N","Plants_C","Plants_N","Decomposers_C","Decomposers_N","Detritus_T_C","Detritus_T_N","Detritus_A_C","Detritus_A_N","Nitrogen_T_N","Nitrogen_A_N")}
+  
+  tspan = c(0, n_time) #to avoid long transient
+  julia_assign("tspan", tspan)
+  
+  if (type_ode=="full"){
+    prob = julia_eval("ODEProblem(ode_metaecosystem, state, tspan, p)")
+  } else if (type_ode=="feedback_T"){
+    prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_T_to_A, state, tspan, p)")
+  } else if (type_ode=="feedback_A"){
+    prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_A_to_T, state, tspan, p)")
+  } else if (type_ode=="topconsum"){
+    prob = julia_eval("ODEProblem(ode_metaecosystem_Topconsumers, state, tspan, p)")
+  } else if (type_ode=="DC"){
+    prob = julia_eval("ODEProblem(ode_metaecosystem_DC, state, tspan, p)")
+  } else if (type_ode=="feedback_A_DC"){
+    prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_A_to_T_DC, state, tspan, p)")
+  } else if (type_ode=="feedback_T_DC"){
+    prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_T_to_A_DC, state, tspan, p)")
+  } else if (type_ode=="feedback_T_topconsum"){
+    prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_T_to_A_topconsumers, state, tspan, p)")
+  } else if (type_ode=="feedback_A_topconsum"){
+    prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_A_to_T_topconsumers, state, tspan, p)")
   }
+  
+  sol = de$solve(prob, de$Tsit5())
+  d = as.data.frame(t(sapply(sol$u, identity)))
+  d$time=sol$t
+  
+  if (type_ode %in% c("topconsum","feedback_T_topconsum","feedback_A_topconsum")){ 
+    d=d[,c(ncol(d),1:(ncol(d)-1))]
+    names_for_col=c("Time","Top_cons_H_C","Top_cons_H_N","Top_cons_C_C","Top_cons_C_N","Herbivores_C","Herbivores_N","Consumers_C","Consumers_N","Plants_C","Plants_N","Decomposers_C","Decomposers_N","Detritus_T_C","Detritus_T_N","Detritus_A_C","Detritus_A_N","Nitrogen_T_N","Nitrogen_A_N")
+  } else {
+    d=d[,c(ncol(d),1:(ncol(d)-1))]
+    names_for_col=c("Time","Herbivores_C","Herbivores_N","Consumers_C","Consumers_N","Plants_C","Plants_N","Decomposers_C","Decomposers_N","Detritus_T_C","Detritus_T_N","Detritus_A_C","Detritus_A_N","Nitrogen_T_N","Nitrogen_A_N")}
+  
     
     final_point=as.numeric(d[nrow(d),-1])
     final_point[which(final_point<TRESH)]=0
@@ -1070,8 +1081,13 @@ Split_N_C_dynamics=function(data,Time=T){
 }
 
 
-plot_dynamics=function(data,last=T){
-  colors = c("Consumers" = "darkorange", "Producers" = "green3", "Nitrogen" = "darkorchid2","Detritus"="brown","Top predators"="blue")
+plot_dynamics=function(data,log_=T){
+  
+  if (ncol(data)<16){
+    colors = c("Consumers" = "darkorange", "Producers" = "green3", "Nitrogen" = "darkorchid2","Detritus"="brown")
+  }else {
+    colors = c("Consumers" = "darkorange", "Producers" = "green3", "Nitrogen" = "darkorchid2","Detritus"="brown","Top predators"="blue")
+  }
   
   the_theme=theme_classic()+theme(legend.position = "bottom",
                                   strip.background = element_rect(fill = "#CCE8D8"),
@@ -1083,30 +1099,15 @@ plot_dynamics=function(data,last=T){
   data$foodweb=Get_foodweb(data$variable); data$trophic_level=Get_trophic_level(data$variable);data$Resources=Get_type_resources(data$variable)
   p=ggplot(data)+
     geom_line(aes(x=Time,y=value,color=trophic_level,linetype=Resources),lwd=1)+ylim(0,max(data$value))+
-    labs(x="Ecological time",y="Patch density")+scale_color_manual(values=colors)+
-    facet_grid(.~foodweb)+the_theme
+    labs(x="Time",y="Patch density",color="Trophic level",linetype="Resource")+scale_color_manual(values=colors)+
+    facet_grid(.~foodweb)+the_theme+
+    theme(legend.box = "vertical")
   
-  if (last) {p=p+xlim((max(data$Time)-150),max(data$Time))}
+  if (log_) {p=p+scale_x_log10()}
   
   return(p)
 }
 
-Type_of_dynamics=function(data){
-  
-  #function to assess whether we have oscillatory or stable state
-  
-  oscil=0
-  for (k in 2:ncol(data)){
-    if (var(data[(nrow(data)-10):nrow(data),k])>1e-5){
-      oscil=oscil+1
-    } 
-  }
-  
-  behavior=ifelse (oscil>0,"Oscillation","Stable")
-  
-  return(behavior)
-
-}
 
 
 ## B) Equilibrium related function ----
@@ -1136,18 +1137,6 @@ Extract_equilibrium_from_dynamics=function(data,param,consumers=F){
 
 
 
-
-Get_NC_ratio_from_eq=function(Eq){
-  
-  nc_H=Eq$Herbivores_N/Eq$Herbivores_C
-  nc_C=Eq$Consumers_N/Eq$Consumers_C
-  nc_B=Eq$Decomposers_N/Eq$Decomposers_C
-  nc_P=Eq$Plants_N/Eq$Plants_C
-  nc_Da=Eq$Detritus_A_N/Eq$Detritus_A_C
-  nc_Dt=Eq$Detritus_T_N/Eq$Detritus_T_C
-  
-  return(c(nc_H=nc_H,nc_C=nc_C,nc_B=nc_B,nc_P=nc_P,nc_DA=nc_Da,nc_Dt=nc_Dt))
-}
 
 Get_foodweb=function(vector){
   return(unlist(lapply(vector, function(x){
@@ -1213,17 +1202,6 @@ Limitation_data=function(data){
 }
 
 
-Find_switch_C_N_limitation=function(d){
-  u=c()
-  
-  for (r in sort(unique(d$rP))){
-    d_sub=filter(d,rP==r)  
-    u=c(u,max(d_sub$rB[which(d_sub$Ratio<1)]))
-    
-    
-  }
-  
-}
 
 
 State_at_equilibrium=function(data,consumers=F){
@@ -1273,67 +1251,6 @@ State_at_equilibrium=function(data,consumers=F){
   }  
   return(state)
 }
-
-Theoretical_eq=function(param,consumer=T){
-  
-  for (i in 1:length(param)) assign(names(param[i]),param[i][[1]])
-  
-  if (consumer){
-    P=dH/(eH*aH)
-    
-    H=(INt*aP-lNt*dP)/(lNt*aH)
-    
-    DCt=(dP*P+dH*H)/mt ;DNt=(rP*dP*P+rH*dH*H)/mt ; NC_Dt=DNt/DCt
-    
-    Nt=(dP+aH*H)/aP
-    
-    BC=dC/(aC*eC)
-    
-    C=(IDa-ma*BC-(lDa/eB*aBD)*(dB+ma))/(aC*BC-dC+(lDa/eB*aBD)*aC)
-    
-    DCa=(IDa+dB*BC+dC*C)/(eB*aBD*BC+lDa)
-    
-    DNa=(dB*BC*rB+dC*rC*C)/(eB*aBD*BC+lDa-IDa/DCa) ; NC_Da=DNa/DCa
-    
-    Na=(1/lNa)*(INa+(rB-eC*rC)*aC*C*BC-(rB-DNa/DCa)*aBD*DCa*BC+ma*BC*rB) 
-    
-  
-    d_eq_T=as_tibble(t(c(H,P,DCt,DNt,Nt,NC_Dt)))
-    colnames(d_eq_T)=c("Herbivores_C","Plants_C","Detritus_T_C","Detritus_T_N","Nitrogen_T_N","N:C_Dt")
-    
-    d_eq_A=as_tibble(t(c(C,BC,DCa,DNa,Na,NC_Da)))
-    colnames(d_eq_A)=c("Consumers_C","Decomposers_C","Detritus_A_C","Detritus_A_N","Nitrogen_A_N","N:C_Da")
-  
-    
-    
-  }else {
-    
-    Nt=dP/aP
-    P=(INt-lNt*Nt+(mt/(mt+lDt))*rP*IDt)/(rP*aP*Nt-(mt/(mt+lDt))*rP*dP)
-    DNt=rP*dP*P*(dP*P+IDt)/(dP*P*(mt+lDt))
-    DCt=(dP*P+IDt)/(lDt+mt)
-    DNt=rP*DCt
-    NC_Dt=DNt/DCt
-    
-    DCa=(ma+dB)/(eB*aBD)
-    B=(IDa-lDa*DCa)/ma
-    DNa=rB*dB*B/(lDa+eB*aBD*B-IDa/DCa)
-    Na=(1/lNa)*(INa-(rB-DNa/DCa)*aBD*eB*DCa*B+ma*B*rB)
-    NC_Da=DNa/DCa
-    
-    d_eq_T=as_tibble(t(c(P,DCt,DNt,Nt,NC_Dt)))
-    colnames(d_eq_T)=c("Plants_C","Detritus_T_C","Detritus_T_N","Nitrogen_T_N","N:C_Dt")
-    
-    d_eq_A=as_tibble(t(c(BC,DCa,DNa,Na,NC_Da)))
-    colnames(d_eq_A)=c("Decomposers_C","Detritus_A_C","Detritus_A_N","Nitrogen_A_N","N:C_Da")
-    
-  }
-  
-  return(list(Terrestrial=d_eq_T,Aquatic=d_eq_A))
-}
-
-
-
 
 
 
@@ -1647,129 +1564,10 @@ Compute_feedbacks=function(Eq,param,type_prod="Production",n_time=1000,
   }
 }
 
-## Repartition of carbon and nitrogen in the ecosystem ----
 
-Repartition_N_C_biomass=function(data,param,which_keep="all"){
-  
-  if (nrow(data)>1) stop("data given should be the equilibrium values")
-  
-  data=data[1:14] # we only keep the values of the organism/abiotic pools
-  
-  
-  #Step 1) compute the repartition of N and C between the two ecosystems
-  splited_data=Split_N_C_dynamics(data,Time=F)
-  
-  data_repartition=tibble(Value=c(as.numeric(splited_data$N),as.numeric(splited_data$C)),
-                          Pool=c(names(splited_data$N),names(splited_data$C)),
-                          Type_resources=c(rep("N",length(splited_data$N)),rep("C",length(splited_data$C))))
-  
-  data_repartition$Ecosystem=sapply(data_repartition$Pool,function(x){
-    
-    if (x %in% c("Herbivores_N","Herbivores_C","Plants_N","Plants_C","Detritus_T_N","Detritus_T_C","Nitrogen_T_N")){
-      return("Terrestrial")
-    }else {return("Aquatic")}
-  })
-  
-  # ggplot(data_repartition, aes(fill=Ecosystem, y=Value, x=Type_resources)) + labs(y="Fraction")+
-  #   geom_bar(position="fill", stat="identity")+scale_fill_manual(values=colors_ecosystem)+the_theme
-  
-  data_repartition=cbind(data_repartition,matrix(unlist(param),ncol = length(param),nrow=1))
-  colnames(data_repartition)[5:ncol(data_repartition)]=names(param)
-  save=data_repartition
-  
-  if (which_keep=="resources"){
-    data_repartition=data_repartition[which(data_repartition$Pool %in% c("Detritus_T_N","Detritus_T_C",'Detritus_A_N','Detritus_A_C',
-                                                                          "Nitrogen_A_N","Nitrogen_T_N")),]
-  }
-  if (which_keep=="biotic"){
-    data_repartition=data_repartition[-which(data_repartition$Pool %in% c("Detritus_T_N","Detritus_T_C",'Detritus_A_N','Detritus_A_C',
-                                                                         "Nitrogen_A_N","Nitrogen_T_N")),]
-  }
-  
-  # Step 2) Computing the biomass in carbon and nitrogen
-  
-  d_biomass=save[-which(save$Pool %in% c("Detritus_T_N","Detritus_T_C",'Detritus_A_N','Detritus_A_C',"Nitrogen_A_N","Nitrogen_T_N")),]
-  
-  rownames(data_repartition)=1:nrow(data_repartition)
-  data_repartition$Biotic=sapply(1:nrow(data_repartition),function(x){
-    if (data_repartition$Pool[x] %in% c("Detritus_T_N","Detritus_T_C",'Detritus_A_N','Detritus_A_C',"Nitrogen_A_N","Nitrogen_T_N")){return("Abiotic")
-      }else {return("Biotic")}
-  })
-  
-  rownames(d_biomass)=1:nrow(d_biomass)
-  
-  return(list(Repartition=data_repartition,Biomass=d_biomass))
-  
-}
 
-Compute_frequency_N_C=function(data){
-  
-  #We summarise the geom_bar, with the fraction of N and C in AQUATIC ecosystem
-  data_save=data
-  data_group=data %>% group_by(Type_resources,Ecosystem,Biotic) %>% summarise(Sum=sum(Value),.groups = "keep")
-  # data_group=data %>% group_by(Type_resources,Ecosystem) %>% summarise(Sum=sum(Value),.groups = "keep")
-  
-  data_group$freq=sapply(1:nrow(data_group),function(x){
-    data_group$Sum[x]/
-    sum(data_group$Sum[which(data_group$Biotic==data_group$Biotic[x] & data_group$Type_resources ==data_group$Type_resources [x])])
-  })
-  
-  # freq=tibble(freq=c(data_group$Sum[1]/(data_group$Sum[2]+data_group$Sum[1]),data_group$Sum[3]/(data_group$Sum[3]+data_group$Sum[4])), #AQUATIC ECOSYSTEM
-  #             Type_resources=c("C","N"))
-  
-  
-  freq = data_group
-  freq = cbind(freq,rbind(unique(data_save[,6:ncol(data_save)-1])))
-  
-  return(freq)
-}
 
-Compute_total_biomass_N_C=function(data){
-  
-  #We summarise the geom_bar, with the fraction of N and C in AQUATIC ecosystem
-  data_save=data
-  data=data %>% group_by(Type_resources,Ecosystem) %>% summarise(Sum=sum(Value),.groups = "keep")
-  
-  data = cbind(data,rbind(unique(data_save[,5:ncol(data_save)])))
-  
-  return(data)
-}
 
-Compute_efficiency_biomass=function(data){
-  
-  # we want to compute the fraction ratio biomass over (resources) in order to get an idea of the capacity of a system to transform nitrogen and detritus into biomass
-  # we will compute that for both carbon, nitrogen and carbon + nitrogen for both terrestrial and aquatic ecosystems
-  
-
-  n_biom = which(names(data) %in% c("Herbivores_C","Herbivores_N","Consumers_C","Consumers_N","Decomposers_C","Decomposers_N","Plants_N","Plants_C"))
-  biomass = data[n_biom];resources=data[-n_biom][1:6]
-  
-  rt = grep(pattern = "T",x = names(resources))
-  R_T = sum(resources[rt]);R_T_C=resources[rt][grep(names(resources[rt]),pattern = "_C")];R_T_N=R_T-R_T_C #resources in terrestrial ecosystem
-  R_A = sum(resources[-rt]);R_A_C=resources[-rt][grep(names(resources[-rt]),pattern = "_C")];R_A_N=R_A-R_A_C #resources in aquatic ecosystem
-  
-  bt = which(names(biomass) %in% c("Herbivores_C","Herbivores_N","Plants_C","Plants_N"))
-  Bt = biomass[bt] ; Ba=biomass[-bt]
-  B_T_C = sum(Bt[grep(names(Bt),pattern="_C")]) ;  B_T_N = sum(Bt[grep(names(Bt),pattern="_N")]) #biomass in terrestrial ecosystem
-  B_A_C = sum(Ba[grep(names(Ba),pattern="_C")]) ;  B_A_N = sum(Ba[grep(names(Ba),pattern="_N")]) #biomass in aquatic ecosystem
-  
-  #We now summarize by ecosystems A, or T or T+A and resources : N, C, N+C (S holds for sum)
-  
-  
-  Efficiency_biomass=tibble(Ratio_T_C=as.numeric(B_T_C/(R_T_C+B_T_C)),
-                            Ratio_T_N=as.numeric(B_T_N/(R_T_N+R_T_N)),
-                            Ratio_T_S=as.numeric((B_T_C+B_T_N)/(R_T_C+R_T_N+B_T_C+B_T_N)),
-                          
-                            Ratio_A_C=as.numeric(B_A_C/(R_A_C+B_A_C)),
-                            Ratio_A_N=as.numeric(B_A_N/(R_T_N+R_T_N)),
-                            Ratio_A_S=as.numeric((B_A_C+B_A_N)/(R_A_C+R_A_N+B_A_C+B_A_N)),
-                          
-                            Ratio_M_C=as.numeric((B_A_C+B_T_C)/(R_A_C+R_A_C+B_A_C+B_T_C)),
-                            Ratio_M_N=as.numeric((B_A_N+B_T_N)/(R_A_N+R_A_N+B_A_N+B_T_N)),
-                            Ratio_M_S=as.numeric((B_A_C+B_A_N+B_T_C+B_T_N)/(R_A_C+R_A_N+R_T_C+R_T_N+B_A_C+B_A_N+B_T_C+B_T_N)))
-  
-  return(Efficiency_biomass)
-}
 
 ### Flow of nitrogen ----
 
@@ -1819,63 +1617,6 @@ Net_flow_nitrogen=function(data,param){
 
   
 
-Proximate_limitation=function(Eq,param,N_add=1,D_add=1){
-  #D_add and N_add is the quantity of detritus and nitrogen that are added as a pulse compared to the equilibrium values
-  
-  d2=tibble()
-  
-  #We start from the equilibrium of the previous simulation.
-  state=as.numeric(Eq)
-  names(state)=c("H","HN","C","CN","P","PN","B",'BN',"DCt","DNt","DCa","DNa","Nt","Na")
-  state=state[1:14]
-  save_state=state
-  
-  P1_control=Primary_production(Eq,param);P2_control=Primary_production(Eq,param) #productivity
-  C_control=Eq$Consumers_C;H_control=Eq$Herbivores_C
-  
-  
-  # we add the pulse of resources given 3 scenarios : N, D and N+D addition, even if we know 
-  # that there will not be co-limitation. But we make the script general to allow modification of Liebig function
-  
-  for (type_addition in c("N","D")){ #old :  c("N","D","N+D")
-    
-    if (type_addition=="N"){
-      state["Na"]=state["Na"]+N_add
-    }
-    #For detritus, we add the quantity in stoichiometric proportion
-    if (type_addition=="D"){
-      ratio_D=state["DNa"]/state["DCa"]
-      state["DCa"]=state["DCa"]+D_add
-      state["DNa"]=state["DCa"]*ratio_D
-    }
-    #We make both addition
-    if (type_addition=="N+D"){
-      state["Na"]=state["Na"]+N_add
-      
-      ratio_D=state["DNa"]/state["DCa"]
-      state["DCa"]=state["DCa"]+D_add
-      state["DNa"]=state["DCa"]*ratio_D
-    }
-    data_save=Compute_ode(state,param,optim_time = F,n_time = 100)
-    
-    #We take the biomass of consumers at time step 1 to get the proximate limitation. We know that it will reach the equilibrium at the end.
-    Eq=data_save[which(data_save$Time==1),]
-
-    P1=Primary_production(Eq,param);P2=Primary_production(Eq,param) #productivity
-    
-    d2=rbind(d2,tibble(P1_T=P1$Terrestrial/P1_control$Terrestrial,
-                                  P1_A=P1$Aquatic/P1_control$Aquatic,P2_T=P2$Terrestrial/P2_control$Terrestrial,P2_A=P2$Aquatic/P2_control$Aquatic,
-                                  C=Eq$Consumers_C/C_control,H=Eq$Herbivores_C/H_control,Treatment=type_addition))
-    
-    #keeping the same initial condition between all treatments
-    state=save_state
-    
-  }
-  d2=rbind(d2,c(rep(1,(ncol(d2)-1),"Control")));d2$Treatment[nrow(d2)]="Control"
-  
-  return(d2)
-  
-}
 
 # 4 ---> Plotting with igraph ----
 

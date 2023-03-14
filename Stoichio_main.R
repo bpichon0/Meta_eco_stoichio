@@ -1,20 +1,4 @@
 rm(list=ls())
-library(tidyverse)
-library(deSolve)
-library(reshape2)
-library(ggtext)
-library(ggpubr)
-library(rootSolve)
-library(latex2exp)
-library(RColorBrewer)
-library(viridis)
-library(ggpattern)
-library(JuliaCall)
-library(diffeqr)
-julia_setup()
-de = diffeq_setup()
-
-julia_library("DifferentialEquations")
 
 source("Stoichio_functions.R")
 
@@ -47,7 +31,7 @@ for (rowspace in 1:nrow(scenario_space)){
     
     state=Get_initial_values(param)
     
-    data_save=Compute_ode(state,param,optim_time = F,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
+    data_save=Compute_ode(state,param,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
     Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
     limit=Get_limitation(Eq$Eq,param)
     
@@ -65,7 +49,7 @@ for (rowspace in 1:nrow(scenario_space)){
     
     param[c("pH",'pC',"pP","pB")]=p_coup #we set delta_X=1 (what I also called phi)
     
-    data_save=Compute_ode(state,param,optim_time = F,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
+    data_save=Compute_ode(state,param,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
     Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
     limit=Get_limitation(Eq$Eq,param)
     
@@ -151,7 +135,7 @@ for (s in scena){
       } else {param[c("pH","pP","pB")]=p;param[c("pC")]=0}
       
       state=Get_initial_values(param)
-      data=Compute_ode(state,param,optim_time = F,n_time = 10000,type_ode = "full")
+      data=Compute_ode(state,param,n_time = 10000,type_ode = "full")
       Eq=Extract_equilibrium_from_dynamics(data,param)$Eq
       
       PII=Secondary_production(Eq,param)
@@ -184,7 +168,7 @@ for (s in scena){
       } else {param[c("pC","pP","pB")]=p;param[c("pH")]=0}
       
       state=Get_initial_values(param)
-      data=Compute_ode(state,param,optim_time = F,n_time = 10000,type_ode = "full")
+      data=Compute_ode(state,param,n_time = 10000,type_ode = "full")
       Eq=Extract_equilibrium_from_dynamics(data,param)$Eq
       
       PII=Secondary_production(Eq,param)
@@ -223,7 +207,7 @@ for (s in scena){
         } else {param[c("pH","pP","pB")]=p;param[c("pC")]=0}
         
         state=Get_initial_values(param)
-        data=Compute_ode(state,param,optim_time = F,n_time = 10000,type_ode = "full")
+        data=Compute_ode(state,param,n_time = 10000,type_ode = "full")
         Eq=Extract_equilibrium_from_dynamics(data,param)$Eq
         
         PII=Secondary_production(Eq,param)
@@ -256,7 +240,7 @@ for (s in scena){
       } else {param[c("pC","pP","pB")]=p;param[c("pH")]=0}
       
       state=Get_initial_values(param)
-      data=Compute_ode(state,param,optim_time = F,n_time = 10000,type_ode = "full")
+      data=Compute_ode(state,param,n_time = 10000,type_ode = "full")
       Eq=Extract_equilibrium_from_dynamics(data,param)$Eq
       
       PII=Secondary_production(Eq,param)
@@ -306,7 +290,7 @@ for (s in c("C-limited",'N-limited',"Colimitation")){
       state=Get_initial_values(param)
       
       
-      data_save=Compute_ode(state,param,optim_time = F,n_time = 60000)
+      data_save=Compute_ode(state,param,n_time = 60000)
       Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
       
       limit_ratio=Get_limitation(Eq$Eq,param)
@@ -354,7 +338,7 @@ for (s in c("C-limited",'N-limited')){
         state=Get_initial_values(param)
         
         
-        data_save=Compute_ode(state,param,optim_time = F,n_time = 10000)
+        data_save=Compute_ode(state,param,n_time = 10000)
         Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
         
         limit_ratio=Get_limitation(Eq$Eq,param)
@@ -367,7 +351,7 @@ for (s in c("C-limited",'N-limited')){
         state=Get_initial_values(param)
         
         
-        data_save=Compute_ode(state,param,optim_time = F,n_time = 10000)
+        data_save=Compute_ode(state,param,n_time = 10000)
         Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
         
         PP1_recy=Primary_production(Eq$Eq,param);        P1_recy=Primary_productivity(Eq$Eq,param)
@@ -432,7 +416,7 @@ for (rowspace in 1:nrow(scenario_space)){
     
     state=Get_initial_values(param);state=State_topconsum(state,param)
     
-    data_save=Compute_ode(state,param,optim_time = F,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
+    data_save=Compute_ode(state,param,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
     Eq=Extract_equilibrium_from_dynamics(data_save,param,consumers = T) #Equilibrium
     limit=Get_limitation(Eq$Eq,param)
     
@@ -452,7 +436,7 @@ for (rowspace in 1:nrow(scenario_space)){
     
     param[c("pH",'pC',"pP","pB","pTC","pTH")]=p_coup #we set delta_X=1 (what I also called phi)
     
-    data_save=Compute_ode(state,param,optim_time = F,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
+    data_save=Compute_ode(state,param,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
     Eq=Extract_equilibrium_from_dynamics(data_save,param,consumers = T) #Equilibrium
     limit=Get_limitation(Eq$Eq,param)
     
@@ -534,10 +518,9 @@ for (s in c('C-limited',"N-limited")){
       }
       
       
-      data_save=Compute_ode(state,param,optim_time = F,n_time = 10000,type_ode = "topconsum")
+      data_save=Compute_ode(state,param,n_time = 10000,type_ode = "topconsum")
       Eq=Extract_equilibrium_from_dynamics(data_save,param,consumers = T) #Equilibrium
       
-      # print(plot_dynamics(data_save,T))
       limit_ratio=Get_limitation(Eq$Eq,param)
       
       P1_bidirectional=Primary_production(Eq$Eq,param)
@@ -593,7 +576,7 @@ for (rowspace in 1:nrow(scenario_space)){
     
     state=Get_initial_values(param)
     
-    data_save=Compute_ode(state,param,optim_time = F,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
+    data_save=Compute_ode(state,param,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
     Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
     limit=Get_limitation(Eq$Eq,param) # if the system is N limited when isolated, it will necessary be N -limited when coupled to the terrestrial ecosystem
     
@@ -611,7 +594,7 @@ for (rowspace in 1:nrow(scenario_space)){
     
     param[c("pH",'pC',"pP","pB")]=p_coup #we set delta_X=1 (what I also called phi)
     
-    data_save=Compute_ode(state,param,optim_time = F,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
+    data_save=Compute_ode(state,param,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
     Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
     limit=Get_limitation(Eq$Eq,param)
     
@@ -690,10 +673,9 @@ for (s in c('C-limited','N-limited')){
         param$lNa=2
       }
       
-      data_save=Compute_ode(state,param,optim_time = F,n_time = (10000),type_ode = "DC")
+      data_save=Compute_ode(state,param,n_time = (10000),type_ode = "DC")
       Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
       
-      # print(plot_dynamics(data_save,T))
       limit_ratio=Get_limitation(Eq$Eq,param)
       
       P1_bidirectional=Primary_production(Eq$Eq,param,DC=T)
@@ -792,7 +774,7 @@ for (Scena in c("N-limited","C-limited")){ #for each scenario of limitation
         
         state=Get_initial_values(param)
         
-        data_save=Compute_ode(state,param,optim_time = F,n_time = time_ode,type_ode = "full")
+        data_save=Compute_ode(state,param,n_time = time_ode,type_ode = "full")
         Eq=Extract_equilibrium_from_dynamics(data_save,param ) #Equilibrium
         limit=Get_limitation(Eq$Eq,param)
         
@@ -810,7 +792,7 @@ for (Scena in c("N-limited","C-limited")){ #for each scenario of limitation
         
         param[c("pH",'pC',"pP","pB")]=delta_X 
         
-        data_save=Compute_ode(state,param,optim_time = F,n_time = time_ode,type_ode = "full")
+        data_save=Compute_ode(state,param,n_time = time_ode,type_ode = "full")
         Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
         limit=Get_limitation(Eq$Eq,param)
         

@@ -2,6 +2,13 @@
 
 Contact: Benoît Pichon, *benoit.pichon0@gmail.com*
 
+
+
+<p align="center">
+    <img src="https://github.com/bpichon0/Meta_eco_stoichio/Example/blob/master/Example/Aquatic_terrestrial_ecotone.jpg" width="500">
+</p>
+
+
 This folder contains all code necessary to replicate the analysis in the main text and in supplementary. 
 
 ## `Data`
@@ -31,3 +38,42 @@ For more details, see the preprint: **Quality matters: stoichiometry of resource
 
 
 
+## `Working example`
+
+The model is displayed bellow, it simulates the dynamics of carbon and nitrogen in a meta-ecosystem at terrestrial-aquatic ecotone.
+
+
+
+<p align="center">
+    <img src="https://github.com/bpichon0/Meta_eco_stoichio/Example/blob/master/Example/Model.jpg" width="500">
+</p>
+
+Let's take an example of a simulation where decomposers are carbon-limited and there is spatial flows coupling both ecosystems.
+
+```R
+
+source("Stoichio_functions.R") #initializing the Julia-R link
+
+param=Get_classical_param(scena = "C-limited",coupling = T) #C-limitation and with spatial coupling
+
+state=Get_initial_values(param) #initial conditions
+data_save=Compute_ode(state,param) #running dynamics of the fully connected ecosystems
+
+plot_dynamics(data_save) #displaying the dynamics
+```
+
+<p align="center">
+    <img src="https://github.com/bpichon0/Meta_eco_stoichio/Example/blob/master/Example/Dynamics.svg" width="500">
+</p>
+
+
+Finally, we can display the net flows of carbon and nitrogen, as well as the carbon stocks in all trophic levels:
+
+```R
+Eq=Extract_equilibrium_from_dynamics(dynamics,param) #Equilibrium
+Plot_meta_ecosystem_graph(Eq$Eq,Eq$Eq,param)
+```
+
+<p align="center">
+    <img src="https://github.com/bpichon0/Meta_eco_stoichio/Example/blob/master/Example/Stocks.svg" width="500">
+</p>
