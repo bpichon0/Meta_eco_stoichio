@@ -54,12 +54,12 @@ Let's take an example of a simulation where decomposers are carbon-limited and t
 
 source("Stoichio_functions.R") #initializing the Julia-R link
 
-param=Get_classical_param(scena = "C-limited",coupling = T) #C-limitation and with spatial coupling
+param=Get_classical_param(scena = "C-limited",coupling = T) #carbon-limitation and with spatial coupling. Parameters can be changed in the list "param". To access parameters used under nitrogen limitation scenario, scena has to be changed to "N-limited"
 
 state=Get_initial_values(param) #initial conditions
-data_save=Compute_ode(state,param) #running dynamics of the fully connected ecosystems
+dynamics=Compute_ode(state,param) #running dynamics of the fully connected ecosystems
 
-plot_dynamics(data_save) #displaying the dynamics
+plot_dynamics(dynamics) #displaying the dynamics
 ```
 
 <p align="center">
