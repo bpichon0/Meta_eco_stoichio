@@ -26,7 +26,7 @@ The **`Empirical_data`** contains four *csv* files necessary to reproduce the Fi
 
 The simulations are made using R (*v4.1.0*) and Julia (*v1.7.3*). All scripts are written in R, and we call julia via R using the **JuliaCall** R package.
 All simulations are gathered in the file `Stoichio_main.R`.
-This file is organized in different section, with each corresponding to a different Figure (press Alt+O to see the sections).
+This file is organized in different section, with each corresponding to a different Figure (press Alt+O to see the sections). **The numbers are indicated as a code to see which simulation is needed to replicate a given figure.** 
 All simulations are fast to run (~2h for all analyses) using the functions from Julia. 
 
 

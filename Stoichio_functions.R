@@ -1,18 +1,17 @@
-library(tidyverse)
-library(deSolve)
-library(reshape2)
-library(igraph)
-library(rethinking)
-library(ggforce)
-library(ggnewscale)
-library(ggtext)
-library(ggpubr)
-library(latex2exp)
-library(RColorBrewer)
-library(viridis)
-library(rootSolve)
-library(JuliaCall)
-library(diffeqr)
+packages=c("tidyverse", "ggpubr", "latex2exp", "deSolve", "reshape2", "igraph","ggforce",
+               "JuliaCall", "diffeqr", "rethinking","phaseR","ggtext","viridis","rootSolve",
+               "ggquiver", "scales","boot","RColorBrewer","ggnewscale")
+
+#install pacakges if not installed already
+install.packages(setdiff(packages, rownames(installed.packages())))
+
+
+x = c("tidyverse", "ggpubr", "latex2exp", "deSolve", "reshape2", "igraph","ggforce",
+      "JuliaCall", "diffeqr", "rethinking","phaseR","ggtext","viridis","rootSolve",
+      "ggquiver", "scales","boot","RColorBrewer","ggnewscale")
+
+lapply(x, require, character.only = TRUE)
+
 julia_setup()
 de = diffeq_setup()
 
@@ -997,6 +996,77 @@ end
 
 ")
 
+ode_metaecosystem_flexible_stoichio = julia_eval("
+
+function ode_metaecosystem_flexible_stoichio(du, u, p, t)
+
+    INt, IDt, lNt, lDt, mt, eH, aH, aP, dH, dP, INa, IDa, lNa, lDa, ma, eC, eB, aC, aBN, aBD, dC, dB, pH, pC, pP, pB, rP, rH, rC, rB, colim, KN,Nstar = p
+    H, HN, C, CN, P, PN, B, BN, DCt, DNt, DCa, DNa, Nt, Na = u
+
+    fH = copy(aH * P * H)
+    fP = copy(aP * Nt * P)
+    fC = copy(aC * B * C)
+    fBN = copy(aBN * Na)
+    fBD = copy(aBD * DCa)
+
+    if colim == 0
+        immo = copy(min(((rB - (DNa / DCa)) / rB) * eB * fBD, fBN))
+    else
+        immo = copy(((rB - (DNa / DCa)) / rB) * eB * fBD * fBN)
+    end
+
+    alpha_P=copy((((.1-0.025)*(Nt-Nstar))/(KN+(Nt-Nstar)))+.025)
+    
+    println(alpha_P)
+    
+    decompo = copy(immo / ((rB - (DNa / DCa)) / rB))
+
+    du[1] = eH * fH - dH * H
+    du[2] = rH * eH * fH - rH * dH * H
+
+    du[3] = eC * fC - dC * C
+    du[4] = rC * eC * fC - rC * dC * C
+
+    du[5] = fP - fH - dP * P
+    du[6] = alpha_P * du[5]
+
+    du[7] = decompo - fC - dB * B - ma * B
+    du[8] = immo * rB + decompo * (DNa / DCa) - fC * rB - dB * B * rB - ma * B * rB
+
+
+    du[9] = IDt - lDt * DCt +
+            dH * H * (1 - pH) + dP * P * (1 - pP) - mt * DCt +
+            dC * C * pC + dB * B * pB
+
+
+    du[10] = IDt * (DNt / DCt) - lDt * DNt +
+             rH * dH * H * (1 - pH) + alpha_P * dP * P * (1 - pP) - mt * DNt +
+             rC * dC * C * pC + rB * dB * B * pB
+
+    du[11] = IDa - lDa * DCa +
+             dC * C * (1 - pC) + dB * B * (1 - pB) - decompo +
+             dH * H * pH + dP * P * pP
+
+
+    du[12] = IDa * (DNa / DCa) - lDa * DNa +
+             rC * dC * C * (1 - pC) + rB * dB * B * (1 - pB) - decompo * (DNa / DCa) +
+             rH * dH * H * pH + alpha_P * dP * P * pP
+
+
+
+
+    du[13] = INt - lNt * Nt - alpha_P * fP +
+             (alpha_P - eH * rH) * fH * (1 - pH) + (rB - eC * rC) * fC * pC +
+             mt * DNt
+
+    du[14] = INa - lNa * Na - immo * rB +
+             (rB - eC * rC) * fC * (1 - pC) + ma * B * rB +
+             (alpha_P - eH * rH) * fH * pH
+
+
+end
+
+")
 
 
 
@@ -1031,6 +1101,10 @@ Compute_ode=function(state,param,TRESH=1e-5,method_ode="lsoda",
     prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_T_to_A_topconsumers, state, tspan, p)")
   } else if (type_ode=="feedback_A_topconsum"){
     prob = julia_eval("ODEProblem(ode_metaecosystem_feedback_no_A_to_T_topconsumers, state, tspan, p)")
+  } 
+  
+  if (type_ode=="flexible_stoi"){
+    prob = julia_eval("ODEProblem(ode_metaecosystem_flexible_stoichio, state, tspan, p)")
   }
   
   sol = de$solve(prob, de$Tsit5())
@@ -1127,7 +1201,7 @@ Extract_equilibrium_from_dynamics=function(data,param,consumers=F){
   
   n_begin=ifelse(consumers,19,15)
   
-  data_mean=as_tibble(t(colMeans(data[(nrow(data)-5000):nrow(data),-1])))
+  data_mean=as_tibble(t(colMeans(data[(nrow(data)-1000):nrow(data),-1])))
   data_with_param=cbind(data_mean,matrix(unlist(param),ncol = length(param),nrow=1))
   colnames(data_with_param)[n_begin:ncol(data_with_param)]=names(param)
   
@@ -1467,7 +1541,7 @@ Compute_feedbacks=function(Eq,param,type_prod="Production",n_time=1000,
   
   param_uni_T=param_b
   
-  data_T=Compute_ode(state,param_uni_T,optim_time = F,n_time = n_time,type_ode = ifelse(DC==T,"feedback_T_DC",ifelse(top_consumers==F,"feedback_T","feedback_T_topconsum")))
+  data_T=Compute_ode(state,param_uni_T,n_time = n_time,type_ode = ifelse(DC==T,"feedback_T_DC",ifelse(top_consumers==F,"feedback_T","feedback_T_topconsum")))
   
   if (feedback_with_input==T){
     param_uni_T$DC_input=Eq_b$Plants_C*param_b$dP*param_b$pP +
@@ -1475,7 +1549,7 @@ Compute_feedbacks=function(Eq,param,type_prod="Production",n_time=1000,
     param_uni_T$DN_input=Eq_b$Plants_C*param_b$dP*param_b$pP*param_b$rP +
       Eq_b$Herbivores_C*Eq_b$dH*param_b$pH*param_b$rH
     param_uni_T$N_input=(Eq_b$rP-Eq_b$rH*Eq_b$eH)*Eq_b$aH*Eq_b$Herbivores_C*Eq_b$Plants_C*Eq_b$pH
-    data_T=Compute_ode(state,param_uni_T,optim_time = F,n_time = n_time,type_ode ="feedback_T_input")
+    data_T=Compute_ode(state,param_uni_T,n_time = n_time,type_ode ="feedback_T_input")
   }
   
   
@@ -1486,7 +1560,7 @@ Compute_feedbacks=function(Eq,param,type_prod="Production",n_time=1000,
   #Second where there is only unidirectional flows of subsidies from T to A
   
   param_uni_A=param_b
-  data_A=Compute_ode(state,param_uni_A,optim_time = F,n_time = n_time,type_ode = ifelse(DC==T,"feedback_A_DC",ifelse(top_consumers==F,"feedback_A","feedback_A_topconsum")))
+  data_A=Compute_ode(state,param_uni_A,n_time = n_time,type_ode = ifelse(DC==T,"feedback_A_DC",ifelse(top_consumers==F,"feedback_A","feedback_A_topconsum")))
   
   if (feedback_with_input==T){
     param_uni_A$DC_input=Eq_b$Decomposers_C*param_b$dB*param_b$pB +
@@ -1494,7 +1568,7 @@ Compute_feedbacks=function(Eq,param,type_prod="Production",n_time=1000,
     param_uni_A$DN_input=Eq_b$Decomposers_C*param_b$dB*param_b$pB*param_b$rB +
       Eq_b$Consumers_C*Eq_b$dC*param_b$pC*param_b$rC
     param_uni_A$N_input=(Eq_b$rB-Eq_b$rC*Eq_b$eC)*Eq_b$aC*Eq_b$Consumers_C*Eq_b$Decomposers_C*Eq_b$pC
-    data_A=Compute_ode(state,param_uni_A,optim_time = F,n_time = n_time,type_ode ="feedback_A_input")
+    data_A=Compute_ode(state,param_uni_A,n_time = n_time,type_ode ="feedback_A_input")
   }
   
   if (plot==T) print(plot_dynamics(data_A,last = F))

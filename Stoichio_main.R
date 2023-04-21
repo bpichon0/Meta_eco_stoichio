@@ -7,7 +7,7 @@ source("Stoichio_functions.R")
 # ----------------------Step 1: Simulations for main text ------------------
 
 #******************************************************************************#
-## >> Mapping ecosystem production in the rP and rB space for delta_X = 1 ----
+## >> 1) Mapping ecosystem production in the rP and rB space for delta_X = 1 ----
 
 
 
@@ -121,7 +121,132 @@ for (rowspace in 1:nrow(scenario_space)){
 
 
 
-## >> Mechanisms N-limitation ----
+## >> 2) Meta-ecosystem scale metrics ----
+
+n_point=30;p_coup=1;  
+param_space=expand.grid(rP=c(1/10,1/40),rB=c(0.12,0.25));p_seq=seq(0,1,length.out=n_point)
+
+for (s in c("C-limited",'N-limited')){ 
+  d=d2=d3=tibble()
+
+  for (nr in 1:nrow(param_space)){
+      for (p in p_seq){
+        
+        param=Get_classical_param(scena = s,coupling = F)
+        param$rP=param_space$rP[nr];param$rB=param_space$rB[nr]
+        param[c("pH",'pC',"pP","pB")]=p
+        state=Get_initial_values(param)
+        
+        
+        data_save=Compute_ode(state,param,n_time = 10000)
+        Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
+        
+        limit_ratio=Get_limitation(Eq$Eq,param)
+        
+        PP1_bidirectional=Primary_production(Eq$Eq,param);        P1_bidirectional=Primary_productivity(Eq$Eq,param)
+        PP2_bidirectional=Secondary_production(Eq$Eq,param);        P2_bidirectional=Secondary_productivity(Eq$Eq,param)
+        
+        
+        param[c("pH",'pC',"pP","pB")]=0
+        state=Get_initial_values(param)
+        
+        
+        data_save=Compute_ode(state,param,n_time = 10000)
+        Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
+        
+        PP1_recy=Primary_production(Eq$Eq,param);        P1_recy=Primary_productivity(Eq$Eq,param)
+        PP2_recy=Secondary_production(Eq$Eq,param);        P2_recy=Secondary_productivity(Eq$Eq,param)
+        
+        
+        Metric_metaecosyst=LRR_meta_ecosystem(P1_bidirectional,P2_bidirectional,P1_recy,P2_recy,PP1_bidirectional,PP2_bidirectional,PP1_recy,PP2_recy)
+        
+
+        d2=rbind(d2,Eq$Eq %>% add_column(Phi=p, Scenario=s,
+                                         Basal=Metric_metaecosyst$Metric_log_sum_PP_1,Secondary=Metric_metaecosyst$Metric_log_sum_PP_2,
+                                         Ratio=limit_ratio$Ratio,Limitation=limit_ratio$Limitation,
+                                         ))
+
+    }
+  }
+  write.table(d2,paste0("./Table/Meta_ecosystem_",s,".csv"),sep=";")
+  
+}
+
+
+
+
+
+
+
+
+
+#******************************************************************************#
+
+## >> 3) Simulations on feedback----
+
+
+n_point=100;p_coup=1;  
+param_space=expand.grid(rP=c(1/10,1/40),rB=c(0.12,0.25));p_seq=seq(0,1,length.out=n_point)
+Extract_equilibrium_from_dynamics=function(data,param,consumers=F){
+  
+  n_begin=ifelse(consumers,19,15)
+  
+  data_mean=as_tibble(t(colMeans(data[(nrow(data)-30000):nrow(data),-1])))
+  data_with_param=cbind(data_mean,matrix(unlist(param),ncol = length(param),nrow=1))
+  colnames(data_with_param)[n_begin:ncol(data_with_param)]=names(param)
+  
+  return(list(Eq=data_with_param))
+  
+}
+for (s in c("C-limited",'N-limited',"Colimitation")){ 
+  d=d2=d3=tibble()
+  
+  for (nr in 1:nrow(param_space)){
+    for (p in p_seq){
+      
+      param=Get_classical_param(scena = s,coupling = F)
+      param$rP=param_space$rP[nr];param$rB=param_space$rB[nr]
+      param[c("pH",'pC',"pP","pB")]=p
+      state=Get_initial_values(param)
+      
+      
+      data_save=Compute_ode(state,param,n_time = 60000)
+      Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
+      
+      limit_ratio=Get_limitation(Eq$Eq,param)
+      
+      P1_bidirectional=Primary_production(Eq$Eq,param)
+      P2_bidirectional=Secondary_production(Eq$Eq,param)
+      
+      feedback=Compute_feedbacks(Eq$Eq,param,type_prod = "Production",n_time=60000)
+      
+      
+      
+      d2=rbind(d2,Eq$Eq %>% add_column(Phi=p, Feedback_T_1=feedback$Net_T_1,Feedback_A_1=feedback$Net_A_1,
+                                       Feedback_T_2=feedback$Net_T_2,Feedback_A_2=feedback$Net_A_2,Scenario=s,
+                                       P1_bidirec_T=P1_bidirectional$Terrestrial,P1_bidirec_A=P1_bidirectional$Aquatic,
+                                       P2_bidirec_T=P2_bidirectional$Terrestrial,P2_bidirec_A=P2_bidirectional$Aquatic,
+                                       P1_uni_T=feedback$P2_no_T_to_A,P1_uni_A=feedback$P1_no_A_to_T,P2_uni_T=feedback$P2_no_T_to_A,
+                                       P2_uni_A=feedback$P2_no_A_to_T,Ratio=limit_ratio$Ratio,Limitation=limit_ratio$Limitation))
+      d=rbind(d,feedback$Eq_uni_A%>%add_column(type_feedback="uni_A",Ratio=Get_limitation(feedback$Eq_uni_A,param)$Ratio,Limitation=Get_limitation(feedback$Eq_uni_A,param)$Limitation),
+              feedback$Eq_uni_T%>%add_column(type_feedback="uni_T",Ratio=Get_limitation(feedback$Eq_uni_T,param)$Ratio,Limitation=Get_limitation(feedback$Eq_uni_T,param)$Limitation))
+      
+    }
+    
+  }
+  write.table(d2,paste0("./Table/Feedback_",s,".csv"),sep=";")
+  write.table(d ,paste0("./Table/Feedback_all_eq_",s,".csv"),sep=";")
+  
+}
+
+
+
+
+# --------------------- Step 2: Simulation for SI ------------
+
+#******************************************************************************#
+
+## >> 4) Mechanisms N-limitation ----
 
 # effect of rB
 phi_seq=c(1);scena=c("no delta_C","all");d=tibble()
@@ -192,7 +317,7 @@ write.table(d,"./Table/Mecanism_herbivores_rP.csv",sep=";")
 
 
 
-## >> Mechanisms C-limitation ----
+## >> 5) Mechanisms C-limitation ----
 
 #effect of rB
 phi_seq=c(1);scena=c("no delta_C","all");d=tibble()
@@ -262,131 +387,8 @@ write.table(d,"./Table/Mecanism_herbivores_rP_C-limited.csv",sep=";")
 
 
 
-## >> Simulations on feedback----
 
-
-n_point=100;p_coup=1;  
-param_space=expand.grid(rP=c(1/10,1/40),rB=c(0.12,0.25));p_seq=seq(0,1,length.out=n_point)
-Extract_equilibrium_from_dynamics=function(data,param,consumers=F){
-  
-  n_begin=ifelse(consumers,19,15)
-  
-  data_mean=as_tibble(t(colMeans(data[(nrow(data)-30000):nrow(data),-1])))
-  data_with_param=cbind(data_mean,matrix(unlist(param),ncol = length(param),nrow=1))
-  colnames(data_with_param)[n_begin:ncol(data_with_param)]=names(param)
-  
-  return(list(Eq=data_with_param))
-  
-}
-for (s in c("C-limited",'N-limited',"Colimitation")){ 
-  d=d2=d3=tibble()
-
-  for (nr in 1:nrow(param_space)){
-    for (p in p_seq){
-      
-      param=Get_classical_param(scena = s,coupling = F)
-      param$rP=param_space$rP[nr];param$rB=param_space$rB[nr]
-      param[c("pH",'pC',"pP","pB")]=p
-      state=Get_initial_values(param)
-      
-      
-      data_save=Compute_ode(state,param,n_time = 60000)
-      Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
-      
-      limit_ratio=Get_limitation(Eq$Eq,param)
-      
-      P1_bidirectional=Primary_production(Eq$Eq,param)
-      P2_bidirectional=Secondary_production(Eq$Eq,param)
-      
-      feedback=Compute_feedbacks(Eq$Eq,param,type_prod = "Production",n_time=60000)
-      
-      
-      
-      d2=rbind(d2,Eq$Eq %>% add_column(Phi=p, Feedback_T_1=feedback$Net_T_1,Feedback_A_1=feedback$Net_A_1,
-                                       Feedback_T_2=feedback$Net_T_2,Feedback_A_2=feedback$Net_A_2,Scenario=s,
-                                       P1_bidirec_T=P1_bidirectional$Terrestrial,P1_bidirec_A=P1_bidirectional$Aquatic,
-                                       P2_bidirec_T=P2_bidirectional$Terrestrial,P2_bidirec_A=P2_bidirectional$Aquatic,
-                                       P1_uni_T=feedback$P2_no_T_to_A,P1_uni_A=feedback$P1_no_A_to_T,P2_uni_T=feedback$P2_no_T_to_A,
-                                       P2_uni_A=feedback$P2_no_A_to_T,Ratio=limit_ratio$Ratio,Limitation=limit_ratio$Limitation))
-      d=rbind(d,feedback$Eq_uni_A%>%add_column(type_feedback="uni_A",Ratio=Get_limitation(feedback$Eq_uni_A,param)$Ratio,Limitation=Get_limitation(feedback$Eq_uni_A,param)$Limitation),
-              feedback$Eq_uni_T%>%add_column(type_feedback="uni_T",Ratio=Get_limitation(feedback$Eq_uni_T,param)$Ratio,Limitation=Get_limitation(feedback$Eq_uni_T,param)$Limitation))
-      
-    }
-    
-  }
-  write.table(d2,paste0("./Table/Feedback_",s,".csv"),sep=";")
-  write.table(d ,paste0("./Table/Feedback_all_eq_",s,".csv"),sep=";")
-  
-}
-
-
-
-## >> Meta-ecosystem scale metrics ----
-
-n_point=30;p_coup=1;  
-param_space=expand.grid(rP=c(1/10,1/40),rB=c(0.12,0.25));p_seq=seq(0,1,length.out=n_point)
-
-for (s in c("C-limited",'N-limited')){ 
-  d=d2=d3=tibble()
-
-  for (nr in 1:nrow(param_space)){
-      for (p in p_seq){
-        
-        param=Get_classical_param(scena = s,coupling = F)
-        param$rP=param_space$rP[nr];param$rB=param_space$rB[nr]
-        param[c("pH",'pC',"pP","pB")]=p
-        state=Get_initial_values(param)
-        
-        
-        data_save=Compute_ode(state,param,n_time = 10000)
-        Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
-        
-        limit_ratio=Get_limitation(Eq$Eq,param)
-        
-        PP1_bidirectional=Primary_production(Eq$Eq,param);        P1_bidirectional=Primary_productivity(Eq$Eq,param)
-        PP2_bidirectional=Secondary_production(Eq$Eq,param);        P2_bidirectional=Secondary_productivity(Eq$Eq,param)
-        
-        
-        param[c("pH",'pC',"pP","pB")]=0
-        state=Get_initial_values(param)
-        
-        
-        data_save=Compute_ode(state,param,n_time = 10000)
-        Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
-        
-        PP1_recy=Primary_production(Eq$Eq,param);        P1_recy=Primary_productivity(Eq$Eq,param)
-        PP2_recy=Secondary_production(Eq$Eq,param);        P2_recy=Secondary_productivity(Eq$Eq,param)
-        
-        
-        Metric_metaecosyst=LRR_meta_ecosystem(P1_bidirectional,P2_bidirectional,P1_recy,P2_recy,PP1_bidirectional,PP2_bidirectional,PP1_recy,PP2_recy)
-        
-
-        d2=rbind(d2,Eq$Eq %>% add_column(Phi=p, Scenario=s,
-                                         Basal=Metric_metaecosyst$Metric_log_sum_PP_1,Secondary=Metric_metaecosyst$Metric_log_sum_PP_2,
-                                         Ratio=limit_ratio$Ratio,Limitation=limit_ratio$Limitation,
-                                         ))
-
-    }
-  }
-  write.table(d2,paste0("./Table/Meta_ecosystem_",s,".csv"),sep=";")
-  
-}
-
-
-
-
-
-
-
-
-
-#******************************************************************************#
-
-# --------------------- Step 2: Simulation for SI ------------
-
-#******************************************************************************#
-
-## >> Sensitivity on the food-webs structure: adding a top predator ----
+## 6) Sensitivity on the food-webs structure: adding a top predator ----
 ### >> Stoichiometry space----
 n_point=20;p_coup=1
 param_space=expand.grid(rP=seq(1/10,1/40,length.out=n_point),rB=seq(0.12,0.25,length.out=n_point))
@@ -518,7 +520,7 @@ for (s in c('C-limited',"N-limited")){
       }
       
       
-      data_save=Compute_ode(state,param,n_time = 10000,type_ode = "topconsum")
+      data_save=Compute_ode(state,param,n_time = 20000,type_ode = "topconsum")
       Eq=Extract_equilibrium_from_dynamics(data_save,param,consumers = T) #Equilibrium
       
       limit_ratio=Get_limitation(Eq$Eq,param)
@@ -527,7 +529,7 @@ for (s in c('C-limited',"N-limited")){
       P2_bidirectional=Secondary_production(Eq$Eq,param)
       P3_bidirectional=Secondary_production_topconsum(Eq$Eq,param)
       
-      feedback=Compute_feedbacks(Eq$Eq,param,type_prod = "Production",n_time=10000,DC = F,plot = F,top_consumers = T)
+      feedback=Compute_feedbacks(Eq$Eq,param,type_prod = "Production",n_time=20000,DC = F,plot = F,top_consumers = T)
       
       
       d2=rbind(d2,Eq$Eq %>% add_column(Phi=p, Feedback_T_1=feedback$Net_T_1,Feedback_A_1=feedback$Net_A_1,
@@ -551,7 +553,7 @@ for (s in c('C-limited',"N-limited")){
   
 }
 
-## >> Donnor-control scenario ----
+## 7) Donnor-control scenario ----
 ### >> Stoichiometry space ----
 n_point=20;p_coup=1
 param_space=expand.grid(rP=seq(1/10,1/40,length.out=n_point),rB=seq(0.12,0.25,length.out=n_point))
@@ -702,7 +704,113 @@ for (s in c('C-limited','N-limited')){
 }
 
 
-## >> Varying the parameters ----
+## 8) Asymmetry of flows ----
+### >> Asymmetry space ----
+n_point=25;p_coup=1;  
+param_space=expand.grid(rP=c(1/10,1/40),rB=c(0.12,0.25));p_seq=seq(0,1,length.out=n_point)
+
+d2=tibble()
+for (s in c("C-limited",'N-limited')){ 
+  
+  
+  for (nr in 1:nrow(param_space)){
+    for (p_T in p_seq){
+      for (p_A in p_seq){
+        param=Get_classical_param(scena = s,coupling = F)
+        param$rP=param_space$rP[nr];param$rB=param_space$rB[nr]
+        param[c('pC',"pB")]=p_A
+        param[c("pH","pP")]=p_T
+        state=Get_initial_values(param)
+        
+        
+        data_save=Compute_ode(state,param,n_time = 10000)
+        Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
+        
+        limit_ratio=Get_limitation(Eq$Eq,param)
+        
+        P1_bidirectional=Primary_production(Eq$Eq,param)
+        P2_bidirectional=Secondary_production(Eq$Eq,param)
+        
+  
+        
+        d2=rbind(d2,Eq$Eq %>% add_column(Phi_T=p_T,Phi_A=p_A,Scenario=s,
+                                         P1_bidirec_T=P1_bidirectional$Terrestrial,P1_bidirec_A=P1_bidirectional$Aquatic,
+                                         P2_bidirec_T=P2_bidirectional$Terrestrial,P2_bidirec_A=P2_bidirectional$Aquatic,
+                                         Ratio=limit_ratio$Ratio,Limitation=limit_ratio$Limitation))
+      }
+    }
+  }
+}
+
+
+write.table(d2,"./Table/Asymmetry_flows_prod.csv",sep=";")
+
+### >> Feedbacks ----
+
+Extract_equilibrium_from_dynamics=function(data,param,consumers=F){
+  
+  n_begin=ifelse(consumers,19,15)
+  
+  data_mean=as_tibble(t(colMeans(data[(nrow(data)-round((nrow(data)/2))):nrow(data),-1])))
+  data_with_param=cbind(data_mean,matrix(unlist(param),ncol = length(param),nrow=1))
+  colnames(data_with_param)[n_begin:ncol(data_with_param)]=names(param)
+  
+  return(list(Eq=data_with_param))
+  
+}
+
+n_point=15;p_coup=1;  
+param_space=rbind(expand.grid(rP=c(1/10),rB=c(0.25),
+                              p_A=c(0,.25,.5,.75,1),p_T=seq(0,1,length.out=n_point),Varying_flow="Terr")%>%
+                    add_column(., Asymmetry=rep(paste0(seq(0,1,length.out=5)),n_point)),
+                  tibble(rP=c(1/10),rB=c(0.25),
+                              p_A=seq(0,1,length.out=n_point),p_T=seq(0,1,length.out=n_point),Varying_flow="Terr")%>%
+                    add_column(., Asymmetry="Symmetry"),
+                  expand.grid(rP=c(1/10),rB=c(0.25),
+                              p_A=seq(0,1,length.out=n_point),p_T=c(0,.25,.5,.75,1),Varying_flow="Aqu")%>%
+                    add_column(., Asymmetry=rep(paste0(seq(0,1,length.out=5)),each=n_point)),
+                  tibble(rP=c(1/10),rB=c(0.25),
+                              p_A=seq(0,1,length.out=n_point),p_T=seq(0,1,length.out=n_point),Varying_flow="Aqu")%>%
+                    add_column(., Asymmetry="Symmetry"))
+
+
+d2=tibble()
+for (s in c("C-limited",'N-limited')){ 
+  for (nr in 1:nrow(param_space)){
+    
+    
+    param=Get_classical_param(scena = s,coupling = F)
+    param$rP=param_space$rP[nr];param$rB=param_space$rB[nr]
+    param[c("pH","pP")]=param_space$p_T[nr]
+    param[c("pB","pC")]=param_space$p_A[nr]
+    state=Get_initial_values(param)
+    
+    
+    data_save=Compute_ode(state,param,n_time = 100000)
+    Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
+    
+    limit_ratio=Get_limitation(Eq$Eq,param)
+    
+    P1_bidirectional=Primary_production(Eq$Eq,param)
+    P2_bidirectional=Secondary_production(Eq$Eq,param)
+    
+    feedback=Compute_feedbacks(Eq$Eq,param,type_prod = "Production",n_time=100000)
+    
+    d2=rbind(d2,Eq$Eq %>% add_column(p_A=param_space$p_A[nr],p_T=param_space$p_T[nr], Feedback_T_1=feedback$Net_T_1,Feedback_A_1=feedback$Net_A_1,
+                                     Feedback_T_2=feedback$Net_T_2,Feedback_A_2=feedback$Net_A_2,Scenario=s,
+                                     P1_bidirec_T=P1_bidirectional$Terrestrial,P1_bidirec_A=P1_bidirectional$Aquatic,
+                                     P2_bidirec_T=P2_bidirectional$Terrestrial,P2_bidirec_A=P2_bidirectional$Aquatic,
+                                     P1_uni_T=feedback$P2_no_T_to_A,P1_uni_A=feedback$P1_no_A_to_T,P2_uni_T=feedback$P2_no_T_to_A,
+                                     P2_uni_A=feedback$P2_no_A_to_T,Ratio=limit_ratio$Ratio,Limitation=limit_ratio$Limitation))
+    
+  }
+}
+write.table(d2%>%
+              add_column(., Varying=rep(param_space$Varying,2))%>%
+              add_column(., Asymmetry=rep(param_space$Asymmetry,2)),"./Table/Asymmetry_flows_feedback.csv",sep=";")
+
+
+## 9) Varying the parameters ----
 stoichio_seq=expand.grid(rB=seq(0.12,.25,length.out=2),rP=seq(0.025,.1,length.out=2))
 delta_X=1;n_point=15
 Sensitivity_tab=list(
@@ -823,3 +931,59 @@ for (Scena in c("N-limited","C-limited")){ #for each scenario of limitation
     
   }# end main loop in different parameters
 }
+
+## 10) Growth efficiency ----
+
+n_point=30;p_coup=1;  
+param_space=expand.grid(rP=c(1/10),rB=c(0.25),eB=c(.1,.75,1));p_seq=seq(0,1,length.out=n_point)
+Extract_equilibrium_from_dynamics=function(data,param,consumers=F){
+  
+  n_begin=ifelse(consumers,19,15)
+  
+  data_mean=as_tibble(t(colMeans(data[(nrow(data)-round(nrow(data)/2)):nrow(data),-1])))
+  data_with_param=cbind(data_mean,matrix(unlist(param),ncol = length(param),nrow=1))
+  colnames(data_with_param)[n_begin:ncol(data_with_param)]=names(param)
+  
+  return(list(Eq=data_with_param))
+  
+}
+
+
+d2=tibble()
+
+for (nr in 1:nrow(param_space)){
+  for (p in p_seq){
+    
+    param=Get_classical_param(scena = "C-limited",coupling = F)
+    param$rP=param_space$rP[nr];param$rB=param_space$rB[nr]
+    param[c("pH",'pC',"pP","pB")]=p
+    param$eB=param_space$eB[nr]
+    state=Get_initial_values(param)
+    
+    
+    data_save=Compute_ode(state,param,n_time = 40000)
+    Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
+    
+    limit_ratio=Get_limitation(Eq$Eq,param)
+    
+    P1_bidirectional=Primary_production(Eq$Eq,param)
+    P2_bidirectional=Secondary_production(Eq$Eq,param)
+    
+    feedback=Compute_feedbacks(Eq$Eq,param,type_prod = "Production",n_time=40000)
+    
+    
+    
+    d2=rbind(d2,Eq$Eq %>% add_column(Phi=p, Feedback_T_1=feedback$Net_T_1,Feedback_A_1=feedback$Net_A_1,
+                                     Feedback_T_2=feedback$Net_T_2,Feedback_A_2=feedback$Net_A_2,Scenario=s,
+                                     P1_bidirec_T=P1_bidirectional$Terrestrial,P1_bidirec_A=P1_bidirectional$Aquatic,
+                                     P2_bidirec_T=P2_bidirectional$Terrestrial,P2_bidirec_A=P2_bidirectional$Aquatic,
+                                     P1_uni_T=feedback$P2_no_T_to_A,P1_uni_A=feedback$P1_no_A_to_T,P2_uni_T=feedback$P2_no_T_to_A,
+                                     P2_uni_A=feedback$P2_no_A_to_T,Ratio=limit_ratio$Ratio,Limitation=limit_ratio$Limitation))
+
+  }
+  
+}
+write.table(d2,paste0("./Table/Feedback_growth_efficiency.csv"),sep=";")
+
+
+

@@ -136,7 +136,7 @@ p_save2=ggplot(d_stoichio,
                aes(x=Exporter_ecosyst,y=Ratio,shape=Mattyp1))+
   geom_boxplot(aes(fill=Exporter_ecosyst,group=Exporter_ecosyst),width=0.4,outlier.shape = NA,color="white",
                position = position_dodge(width = 1),alpha=.4)+ 
-  geom_point(aes(color=Exporter_ecosyst),position=position_jitterdodge(dodge.width=.4,jitter.width=.1))+
+  geom_point(aes(color=Exporter_ecosyst),position=position_jitterdodge(dodge.width=.5,jitter.width=.03),size=2)+
   annotate("text",x=1:4,y=0.005,label=paste0("n = ",table(d_stoichio$Exporter_ecosyst)),size=3.5)+
   labs(x="",fill="",y="N:C",shape="",color="",shape="")+scale_y_log10()+
   scale_shape_manual(values=shape_type)+
@@ -159,12 +159,12 @@ p_tot=ggarrange(p_save3+
                           nrow = 2,hjust = -3.3,labels = LETTERS[2:3],
                           font.label = list(size=20),heights = c(1,1.7)),
                 labels=c(LETTERS[1],"",""),nrow = 2,heights = c(1,2),hjust =-4,font.label = list(size=20))
-ggsave("./Figures/Fig1.pdf",p_tot,width = 6,height = 12)
+ggsave("./Figures/Fig_empirical.pdf",p_tot,width = 6,height = 12)
 
 
 
 
-## >> Fig : N-limited & C-limited , explanation patterns ----
+## >> 1) Fig : N-limited & C-limited , explanation patterns ----
 
 for (scena in c("C-limited","N-limited")){
   type_prod="PP"
@@ -182,7 +182,7 @@ for (scena in c("C-limited","N-limited")){
     if (pl %in% c("PP2_A","PP1_A")) pal_col=pal_aqua(100)
     
     assign(paste0("p_",u),ggplot(filter(d2_melt,variable==pl))+geom_tile(aes(x=rP,y=rB,fill=value),width=1/200,height=1/200)+the_theme+
-             labs(y=expression(paste("N:C decomposers (r"[B],")")),x=expression(paste("N:C plants (r"[P],")")),fill='')+ggtitle(name_plot[u])+
+             labs(y=substitute(paste("N:C decomposers (",alpha[B],")")),x=substitute(paste("N:C plants(",alpha[P],")")),fill='')+ggtitle(name_plot[u])+
              scale_fill_gradientn(colors = pal_col)+geom_contour(aes(x=rP,y=rB,z=value),breaks = c(0),linetype=1,lwd=.01,color="black")+
              theme(plot.title = element_text(size=12)))
     
@@ -207,7 +207,8 @@ for (scena in c("C-limited","N-limited")){
   }
   if (scena=="N-limited"){
     p_2=p_2+scale_fill_gradientn(colours=col_terr,breaks=c(4.60,4.70))
-
+    p_1=p_1+scale_fill_gradientn(colours=col_aq,breaks=c(.5,.53,.56))
+    
   }
   
   
@@ -276,10 +277,10 @@ for (scena in c("C-limited","N-limited")){
 
 p_tot=ggarrange(p_tot_C,p_tot_N,
                 nrow=2,labels = LETTERS[1:2],font.label = list(size=20),hjust=-1.5)
-ggsave(paste0("./Figures/Fig3.pdf"),p_tot,width = 7,height = 10)
+ggsave(paste0("./Figures/Local_ecosystems.pdf"),p_tot,width = 7,height = 10)
 
 
-## >> Fig : LRR at the meta-ecosystem scale ----
+## >> 2) Fig : LRR at the meta-ecosystem scale ----
 
 for (scena in c("C-limited","N-limited")){
   type_prod="PP"
@@ -294,7 +295,7 @@ for (scena in c("C-limited","N-limited")){
   for (pl in unique(d2_melt$variable)){
     pal_col=pal(100)
     assign(paste0("p_",u),ggplot(filter(d2_melt,variable==pl))+geom_tile(aes(x=rP,y=rB,fill=value),width=1/200,height=1/200)+the_theme+
-             labs(y=expression(paste("N:C decomposers (r"[B],")")),x=expression(paste("N:C plants (r"[P],")")),fill='')+ggtitle(name_plot[u])+
+             labs(y=substitute(paste("N:C decomposers (",alpha[B],")")),x=substitute(paste("N:C plants(",alpha[P],")")),fill='')+ggtitle(name_plot[u])+
              scale_fill_gradient2(low = "red",mid = "white",high = "blue")+#geom_contour(aes(x=rP,y=rB,z=value),breaks = c(-.0001,0.0001),linetype=1,lwd=.1,color="gray50")+
              theme(plot.title = element_text(size=13)))
     u=u+1
@@ -325,10 +326,10 @@ p_tot=ggarrange(p_tile_C,
                 p_tile_N,
                 nrow=2,labels = LETTERS[1:2],font.label = list(size=20))
 
-ggsave(paste0("./Figures/Fig4.pdf"),p_tot,width = 8,height = 9)
+ggsave(paste0("./Figures/LRR_metaecosyst.pdf"),p_tot,width = 8,height = 9)
 
 
-## >> Fig : Feedbacks in N and C limited scenarios ----
+## >> 3) Fig : Feedbacks in N and C limited scenarios ----
 
 
 
@@ -354,8 +355,8 @@ for (s in c("C-limited","N-limited")){
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackT1,group=interaction(rP,rB)),color="#3FB500")+
            
            ggtitle("Terr. basal prod.")+
-           scale_shape_manual(values=c(1,2,8,11),labels=c(TeX("$r_P = 0.025, r_B = 0.12$"),TeX("$r_P = 0.1, r_B = 0.12$"),
-                                                         TeX("$r_P = 0.025, r_B = 0.25$"),TeX("$r_P = 0.1, r_B = 0.25$")))+
+           scale_shape_manual(values=c(1,2,8,11),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta$"),y="Spatial feedback",
                                                     shape=""))
   
@@ -367,8 +368,8 @@ for (s in c("C-limited","N-limited")){
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackT2,group=interaction(rP,rB)),color="#3D8814")+
            
            ggtitle("Terr. secondary prod.")+
-           scale_shape_manual(values=c(1,2,8,11),labels=c(TeX("$r_P = 0.025, r_B = 0.12$"),TeX("$r_P = 0.1, r_B = 0.12$"),
-                                                         TeX("$r_P = 0.025, r_B = 0.25$"),TeX("$r_P = 0.1, r_B = 0.25$")))+
+           scale_shape_manual(values=c(1,2,8,11),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta$"),y="",
                                                     shape=""))
   
@@ -378,8 +379,8 @@ for (s in c("C-limited","N-limited")){
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackA1,group=interaction(rP,rB)),color="#2EAEBF")+
            
            ggtitle("Aqu. basal prod.")+
-           scale_shape_manual(values=c(1,2,8,11),labels=c(TeX("$r_P = 0.025, r_B = 0.12$"),TeX("$r_P = 0.1, r_B = 0.12$"),
-                                                         TeX("$r_P = 0.025, r_B = 0.25$"),TeX("$r_P = 0.1, r_B = 0.25$")))+
+           scale_shape_manual(values=c(1,2,8,11),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta$"),y="",
                                                     shape=""))
   
@@ -389,16 +390,16 @@ for (s in c("C-limited","N-limited")){
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackA2,group=interaction(rP,rB)),color="#2B50A7")+
            
            ggtitle("Aqu. secondary prod.")+
-           scale_shape_manual(values=c(1,2,8,11),labels=c(TeX("$r_P = 0.025, r_B = 0.12$"),TeX("$r_P = 0.1, r_B = 0.12$"),
-                                                         TeX("$r_P = 0.025, r_B = 0.25$"),TeX("$r_P = 0.1, r_B = 0.25$")))+
+           scale_shape_manual(values=c(1,2,8,11),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta$"),y="",
                                                     shape=""))
   
   p_legend=ggplot(NULL)+
     geom_point(data=filter(d2_mean_rep,round(Phi,6) %in% round(phi_keep,6)),aes(x=Phi,y=mean_feedbackA1,shape=interaction(rP,rB)),color="black",size=3)+
     theme_classic()+
-    scale_shape_manual(values=c(1,2,8,11),labels=c(TeX("$ \ r_P = 0.025, r_B = 0.12  $"),TeX("$ \  r_P = 0.1, r_B = 0.12  $"),
-                                                  TeX("$ \ r_P = 0.025, r_B = 0.25  $"),TeX("$ \  r_P = 0.1, r_B = 0.25  $")))
+    scale_shape_manual(values=c(1,2,8,11),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                   substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))
   
   if (s=="N-limited"){
     
@@ -474,7 +475,7 @@ p_feedback=ggarrange(p_C,p_N,ggarrange(ggplot()+theme_void(),
                      nrow = 3,common.legend = T,labels = c(LETTERS[1:2],""),heights = c(1,1,.3),font.label = list(size=20),vjust = c(2,0))
 
 
-ggsave(paste0("./Figures/Fig_5.pdf"),p_feedback,width = 14,height = 7)
+ggsave(paste0("./Figures/Feedback.pdf"),p_feedback,width = 14,height = 7)
 
 
 
@@ -507,7 +508,7 @@ ggsave(paste0("./Figures/Fig_5.pdf"),p_feedback,width = 14,height = 7)
 
 #******************************************************************************#
 
-## >> Fig N & C limited, secondary production ----
+## >> 1) Fig N & C limited, secondary production ----
 for (scena in c("C-limited","N-limited")){
   type_prod="PP"
   d2=read.table(paste0("./Table/Space_rB_rP_",scena,"_phi_1.csv"),sep=";")
@@ -525,7 +526,7 @@ for (scena in c("C-limited","N-limited")){
     if (pl %in% c("PP2_A","PP1_A")) pal_col=pal_aqua(100)
 
     assign(paste0("p_",u),ggplot(filter(d2_melt,variable==pl))+geom_tile(aes(x=rP,y=rB,fill=value),width=1/200,height=1/200)+the_theme+
-             labs(y=expression(paste("N:C decomposers (r"[B],")")),x=expression(paste("N:C plants (r"[P],")")),fill='')+ggtitle(name_plot[u])+
+             labs(y=substitute(paste("N:C decomposers (",alpha[B],")")),x=substitute(paste("N:C plants(",alpha[P],")")),fill='')+ggtitle(name_plot[u])+
              scale_fill_gradientn(colors = pal_col)+geom_contour(aes(x=rP,y=rB,z=value),breaks = c(0),linetype=1,lwd=.01,color="black")+
              theme(plot.title = element_text(size=12)))
     
@@ -554,7 +555,34 @@ ggsave("./Figures/SI/Secondary_production.pdf",p,width = 7,height = 7)
 
 
 
-## >> Exported flows ----
+## >> 3) Influence coupling ----
+d2=tibble()
+for (s in c("C-limited","N-limited")){
+  d2=rbind(d2,read.table(paste0("./Table/Feedback_",s,".csv"),sep=";")%>%
+             add_column(., Limitation=s))
+}
+
+plot_list=list()
+index=1
+name_prod=c("Terr. basal production","Aqu. basal production",
+            "Terr. secondary production","Aqu. secondary production")
+for (k in unique(d2$Limitation)){
+  for (z in 1:4){
+    plot_list[[index]]=ggplot(d2%>%filter(Limitation==k)%>%
+                                melt(., measure.vars=c("P1_bidirec_T",  "P1_bidirec_A" , "P2_bidirec_T" ,"P2_bidirec_A")[z]))+
+      geom_line(aes(x=Phi,y=value,color=interaction(rB,rP)))+
+      the_theme+labs(x=TeX("$\\Delta_X$"),y="",color="")+
+      ggtitle(name_prod[z])+theme(title = element_text(size=9))+
+      guides(color=guide_legend(nrow = 2,ncol=2))+
+      scale_color_manual(values=viridis(4),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                     substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))
+    index=index+1
+  }
+}
+p=ggarrange(plotlist=plot_list,ncol = 4,nrow=2,common.legend = T,legend = "bottom",labels = c("A","","","","B","","",""))
+ggsave("./Figures/SI/Influence_coupling.pdf",p,width=10,height=6)
+
+## >> 4 & 5) Exported flows ----
 
 #C-limited
 
@@ -564,7 +592,7 @@ p1_C=ggplot(d%>%melt(., measure.vars=c("N_A_to_T","C_A_to_T"))%>%
   geom_line(aes(x=rB,y=value,color=variable,group=interaction(scena,variable)))+
   the_theme+facet_wrap(.~variable,scales = "free",ncol=2)+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
                                                                 axis.title = element_text(size=9))+
-  labs(x=expression(paste("N:C decomposers (r"[B],")")),y="Resource flow to the terrestrial ecosystem",color="",shape="")+
+  labs(x=substitute(paste("N:C decomposers (",alpha[B],")")),y="Resource flow to the terrestrial ecosystem",color="",shape="")+
   scale_color_manual(values=(c("#AC86DA","#D2B96F")),labels=c("Nitrogen","Carbon"))+
   scale_shape_manual(values=c(21,0),labels=c(TeX("$\\Delta_C=1$"),TeX("$\\Delta_C=0$")))
 
@@ -575,7 +603,7 @@ p2_C=ggplot(d%>%melt(., measure.vars=c("N_T_to_A","C_T_to_A"))%>%
   geom_line(aes(x=rP,y=value,color=variable,group=interaction(scena,variable)))+
   the_theme+facet_wrap(.~variable,scales = "free",ncol=2)+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
                                                                 axis.title = element_text(size=9))+
-  labs(x=expression(paste("N:C plants (r"[P],")")),y="Resource flow to the aquatic ecosystem",color="",shape="")+
+  labs(x=substitute(paste("N:C plants(",alpha[P],")")),y="Resource flow to the aquatic ecosystem",color="",shape="")+
   scale_color_manual(values=(c("#AC86DA","#D2B96F")),labels=c("Nitrogen","Carbon"))+
   scale_shape_manual(values=c(21,0),labels=c(TeX("$\\Delta_G=1$"),TeX("$\\Delta_G=0$")))
 
@@ -588,7 +616,7 @@ p1_N=ggplot(d%>%melt(., measure.vars=c("N_A_to_T","C_A_to_T"))%>%
   geom_line(aes(x=rB,y=value,color=variable,group=interaction(scena,variable)))+
   the_theme+facet_wrap(.~variable,scales = "free",ncol=2)+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
                                                                 axis.title = element_text(size=9))+
-  labs(x=expression(paste("N:C decomposers (r"[B],")")),y="Resource flow to the terrestrial ecosystem",color="",shape="")+
+  labs(x=substitute(paste("N:C decomposers (",alpha[B],")")),y="Resource flow to the terrestrial ecosystem",color="",shape="")+
   scale_color_manual(values=(c("#AC86DA","#D2B96F")),labels=c("Nitrogen","Carbon"))+
   scale_shape_manual(values=c(21,0),labels=c(TeX("$\\Delta_C=1$"),TeX("$\\Delta_C=0$")))
 
@@ -599,7 +627,7 @@ p2_N=ggplot(d%>%melt(., measure.vars=c("N_T_to_A","C_T_to_A"))%>%
   geom_line(aes(x=rP,y=value,color=variable,group=interaction(scena,variable)))+
   the_theme+facet_wrap(.~variable,scales = "free",ncol=2)+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
                                                                 axis.title = element_text(size=9))+
-  labs(x=expression(paste("N:C plants (r"[P],")")),y="Resource flow to the aquatic ecosystem",color="",shape="")+
+  labs(x=substitute(paste("N:C plants(",alpha[P],")")),y="Resource flow to the aquatic ecosystem",color="",shape="")+
   scale_color_manual(values=(c("#AC86DA","#D2B96F")),labels=c("Nitrogen","Carbon"))+
   scale_shape_manual(values=c(21,0),labels=c(TeX("$\\Delta_G=1$"),TeX("$\\Delta_G=0$")))
 
@@ -615,7 +643,7 @@ p_rP=ggarrange(p2_C,p2_N+labs(y=""),ncol=2,heights = c(1,1),common.legend = T,
 p_tot=ggarrange(p_rB,p_rP,nrow=2,labels = LETTERS[1:2],hjust=-2)
 ggsave(paste0("./Figures/SI/Flows_exported.pdf"),p_tot,width = 9,height = 6)
 
-## >> Consumers density ----
+## >> 4 & 5) Consumers density ----
 d=read.table("./Table/Mecanism_consumers_rB_C-limited.csv",sep=";")
 p_consum1_C=ggplot(d%>%melt(., measure.vars=c("Herbivores_C","Consumers_C"))%>%
                      mutate(., variable=recode_factor(variable,"Herbivores_C"=" ","Consumers_C"="  ")))+
@@ -623,7 +651,7 @@ p_consum1_C=ggplot(d%>%melt(., measure.vars=c("Herbivores_C","Consumers_C"))%>%
   geom_line(aes(x=rB,y=value,color=variable,group=interaction(scena,variable)))+
   the_theme+facet_wrap(.~variable,scales = "free",ncol=2)+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
                                                                 axis.title = element_text(size=9))+
-  labs(x=expression(paste("N:C decomposers (r"[B],")")),y="Carbon content",color="",shape="")+
+  labs(x=substitute(paste("N:C decomposers (",alpha[B],")")),y="Carbon content",color="",shape="")+
   scale_color_manual(values=(c("#298FB1",col.alpha("red",.9))),labels=c("Grazers","Consumers"))+
   scale_shape_manual(values=c(21,0),labels=c(TeX("$\\Delta_C=1$"),TeX("$\\Delta_C=0$")))
 
@@ -635,7 +663,7 @@ p_consum2_C=ggplot(d%>%melt(., measure.vars=c("Herbivores_C","Consumers_C"))%>%
   geom_line(aes(x=rP,y=value,color=variable,group=interaction(scena,variable)))+
   the_theme+facet_wrap(.~variable,scales = "free",ncol=2)+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
                                                                 axis.title = element_text(size=9))+
-  labs(x=expression(paste("N:C plants (r"[P],")")),y="Carbon content",color="",shape="")+
+  labs(x=substitute(paste("N:C plants(",alpha[P],")")),y="Carbon content",color="",shape="")+
   scale_color_manual(values=(c("#298FB1",col.alpha("red",.9))),labels=c("Grazers","Consumers"))+
   scale_shape_manual(values=c(21,0),labels=c(TeX("$\\Delta_G=1$"),TeX("$\\Delta_G=0$")))
 
@@ -649,7 +677,7 @@ p_consum1_N=ggplot(d%>%melt(., measure.vars=c("Herbivores_C","Consumers_C"))%>%
   geom_line(aes(x=rB,y=value,color=variable,group=interaction(scena,variable)))+
   the_theme+facet_wrap(.~variable,scales = "free",ncol=2)+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
                                                                 axis.title = element_text(size=9))+
-  labs(x=expression(paste("N:C decomposers (r"[B],")")),y="Carbon content",color="",shape="")+
+  labs(x=substitute(paste("N:C decomposers (",alpha[B],")")),y="Carbon content",color="",shape="")+
   scale_color_manual(values=(c("#298FB1",col.alpha("red",.9))),labels=c("Grazers","Consumers"))+
   scale_shape_manual(values=c(21,0),labels=c(TeX("$\\Delta_C=1$"),TeX("$\\Delta_C=0$")))
 
@@ -663,7 +691,7 @@ p_consum2_N=ggplot(d%>%melt(., measure.vars=c("Herbivores_C","Consumers_C"))%>%
   geom_line(aes(x=rP,y=value,color=variable,group=interaction(scena,variable)))+
   the_theme+facet_wrap(.~variable,scales = "free",ncol=2)+theme(strip.background=element_rect(colour="transparent",fill="transparent"),
                                                                 axis.title = element_text(size=9))+
-  labs(x=expression(paste("N:C plants (r"[P],")")),y="Carbon content",color="",shape="")+
+  labs(x=substitute(paste("N:C plants(",alpha[P],")")),y="Carbon content",color="",shape="")+
   scale_color_manual(values=(c("#298FB1",col.alpha("red",.9))),labels=c("Grazers","Consumers"))+
   scale_shape_manual(values=c(21,0),labels=c(TeX("$\\Delta_G=1$"),TeX("$\\Delta_G=0$")))
 
@@ -681,7 +709,7 @@ p_tot=ggarrange(p_rB,p_rP,nrow=2,labels = LETTERS[1:2])
 ggsave(paste0("./Figures/SI/Consumers_density.pdf"),p_tot,width = 9,height = 6)
 
 
-## >> Feedback N limited, biotic abiotic pools ----
+## >> 3) Feedback N limited, biotic abiotic pools ----
 
 scena="N-limited"
 phi_keep=seq(0,1,length.out=100)[round(seq(1,100,length.out=12))]
@@ -757,9 +785,10 @@ d=d2_mean_rep %>%melt(., id.vars=c("Scenario","rB","rP","Phi")) %>%
 print(ggplot(NULL)+               
         geom_point(data=d%>%filter(.,round(Phi,6) %in% round(phi_keep,6)),aes(x=Phi,y=mean,shape=interaction(rP,rB)),size=1.5,color="gray50")+
         geom_line(data=d,aes(x=Phi,y=mean,group=interaction(rP,rB,pool)),color="gray50")+
-        scale_shape_manual(values=c(1,2,0,5))+
+        scale_shape_manual(values=c(1,2,0,5),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                     substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
         the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta_X$"),y="Feedback on pools",
-                                                 shape=expression(paste("N:C plants (r"[P],")",", N:C decomposers (r"[B],")")))+
+                                                 shape="")+
         facet_wrap(.~pool,scales='free_y')+theme(panel.border = element_rect(fill="transparent"),strip.background=element_rect(colour="transparent",
                                                                                                                                fill="transparent"),
                                                  strip.text = element_text(size=7),axis.text = element_text(size=7)))
@@ -769,7 +798,7 @@ dev.off()
 
 
 
-## >> Change in N:C of detritus ----
+## >> 3) Change in N:C of detritus ----
 
 d_tot=tibble()
 for (s in c("C-limited","N-limited","Colimitation")){
@@ -816,7 +845,7 @@ p_aq=ggplot(d_tot%>% filter(., rB==.12))+
   
   scale_shape_manual(values=c(1,2))+
   the_theme+labs(x=TeX("$ \\Delta$"),y="N:C aq. detritus",
-                 shape=expression(paste("N:C plants (r"[P],")")))+
+                 shape=substitute(paste("N:C plants(",alpha[P],")")))+
   theme(plot.title = element_text(size=11),axis.text = element_text(size=10),
         axis.title.y = element_text(size=12),legend.position = "bottom",
         axis.title.x = element_text(size=14),strip.background=element_rect(colour="white",
@@ -845,7 +874,7 @@ p=ggarrange(p_ter,p_aq,p_slim,nrow=3,labels = LETTERS[1:3], font.label = list(si
 ggsave("./Figures/SI/Detritus_N_C.pdf",p,width = 8,height = 8)
 
 
-## >> Adding top predators ----
+## >> 6) Adding top predators ----
 for (scena in c("C-limited","N-limited")){
   type_prod="PP"
   d2=read.table(paste0("./Table/Space_rB_rP_",scena,"_phi_Top_pred_1.csv"),sep=";")
@@ -870,7 +899,7 @@ for (scena in c("C-limited","N-limited")){
     
     
     assign(paste0("p_",u),ggplot(filter(d2_melt,variable==pl))+geom_tile(aes(x=rP,y=rB,fill=value))+the_theme+
-             labs(y=expression(paste("N:C decomposers (r"[B],")")),x=expression(paste("N:C plants (r"[P],")")),fill='')+ggtitle(name_plot[u])+
+             labs(y=substitute(paste("N:C decomposers (",alpha[B],")")),x=substitute(paste("N:C plants(",alpha[P],")")),fill='')+ggtitle(name_plot[u])+
              scale_fill_gradientn(colors = pal_col)+geom_contour(aes(x=rP,y=rB,z=value),breaks = c(0),linetype=1,lwd=.01,color="gray50")+
              theme(plot.title = element_text(size=14)))
     
@@ -919,9 +948,10 @@ for (s in c("C-limited","N-limited")){
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackT1,group=interaction(rP,rB)),color="#3FB500")+
            
            ggtitle("Terrestrial basal production")+
-           scale_shape_manual(values=c(1,2,0,5))+
+           scale_shape_manual(values=c(1,2,0,5),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta_X$"),y="Feedback on production",
-                                                    shape=expression(paste("N:C plants (r"[P],")",", N:C decomposers (r"[B],")   ")))+
+                                                    shape="")+
            theme(plot.title = element_text(size=9),axis.text = element_text(size=10),
                  axis.title.y = element_text(size=12),
                  axis.title.x = element_text(size=14),
@@ -935,9 +965,10 @@ for (s in c("C-limited","N-limited")){
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackT2,group=interaction(rP,rB)),color="#3D8814")+
            
            ggtitle("Terrestrial secondary production")+
-           scale_shape_manual(values=c(1,2,0,5))+
+           scale_shape_manual(values=c(1,2,0,5),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta_X$"),y="",
-                                                    shape=expression(paste("N:C plants (r"[P],")",", N:C decomposers (r"[B],")   ")))+
+                                                    shape="")+
            theme(plot.title = element_text(size=9),axis.text = element_text(size=10),
                  axis.title.y = element_text(size=12),
                  axis.title.x = element_text(size=14),
@@ -950,9 +981,10 @@ for (s in c("C-limited","N-limited")){
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackT3,group=interaction(rP,rB)),color="#004E21")+
            
            ggtitle("Terrestrial top consumers production")+
-           scale_shape_manual(values=c(1,2,0,5))+
+           scale_shape_manual(values=c(1,2,0,5),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta_X$"),y="",
-                                                    shape=expression(paste("N:C plants (r"[P],")",", N:C decomposers (r"[B],")   ")))+
+                                                    shape="")+
            theme(plot.title = element_text(size=9),axis.text = element_text(size=10),
                  axis.title.y = element_text(size=12),
                  axis.title.x = element_text(size=14),
@@ -965,9 +997,10 @@ for (s in c("C-limited","N-limited")){
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackA1,group=interaction(rP,rB)),color="#2EAEBF")+
            
            ggtitle("Aquatic basal production")+
-           scale_shape_manual(values=c(1,2,0,5))+
+           scale_shape_manual(values=c(1,2,0,5),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta_X$"),y="Feedback on production",
-                                                    shape=expression(paste("N:C plants (r"[P],")",", N:C decomposers (r"[B],")   ")))+
+                                                    shape="")+
            theme(plot.title = element_text(size=9),axis.text = element_text(size=10),
                  axis.title.y = element_text(size=12),
                  axis.title.x = element_text(size=14),
@@ -980,9 +1013,10 @@ for (s in c("C-limited","N-limited")){
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackA2,group=interaction(rP,rB)),color="#2B50A7")+
            
            ggtitle("Aquatic secondary production")+
-           scale_shape_manual(values=c(1,2,0,5))+
+           scale_shape_manual(values=c(1,2,0,5),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta_X$"),y="",
-                                                    shape=expression(paste("N:C plants (r"[P],")",", N:C decomposers (r"[B],")   ")))+
+                                                    shape="")+
            theme(plot.title = element_text(size=9),axis.text = element_text(size=10),
                  axis.title.y = element_text(size=12),
                  axis.title.x = element_text(size=14),
@@ -995,9 +1029,10 @@ for (s in c("C-limited","N-limited")){
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackA3,group=interaction(rP,rB)),color="#000080")+
            
            ggtitle("Aquatic top consumers production")+
-           scale_shape_manual(values=c(1,2,0,5))+
+           scale_shape_manual(values=c(1,2,0,5),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                        substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta_X$"),y="",
-                                                    shape=expression(paste("N:C plants (r"[P],")",", N:C decomposers (r"[B],")   ")))+
+                                                    shape="")+
            theme(plot.title = element_text(size=9),axis.text = element_text(size=10),
                  axis.title.y = element_text(size=12),
                  axis.title.x = element_text(size=14),
@@ -1009,7 +1044,7 @@ for (s in c("C-limited","N-limited")){
   
 }
 
-## >> Donnor Control scenario ----
+## >> 7) Donnor Control scenario ----
 for (scena in c("C-limited","N-limited")){
   type_prod="PP"
   d2=read.table(paste0("./Table/Space_rB_rP_",scena,"_phi_1_DC_.csv"),sep=";")
@@ -1028,7 +1063,7 @@ for (scena in c("C-limited","N-limited")){
     
     
     assign(paste0("p_",u),ggplot(filter(d2_melt,variable==pl))+geom_tile(aes(x=rP,y=rB,fill=value))+the_theme+
-             labs(y=expression(paste("N:C decomposers (r"[B],")")),x=expression(paste("N:C plants (r"[P],")")),fill='')+ggtitle(name_plot[u])+
+             labs(y=substitute(paste("N:C decomposers (",alpha[B],")")),x=substitute(paste("N:C plants(",alpha[P],")")),fill='')+ggtitle(name_plot[u])+
              scale_fill_gradientn(colors = pal_col)+geom_contour(aes(x=rP,y=rB,z=value),breaks = c(0),linetype=1,lwd=.01,color="gray50")+
              theme(plot.title = element_text(size=14)))
     
@@ -1070,13 +1105,15 @@ for (s in c("C-limited","N-limited")){
                       aes(x=Phi,y=mean_feedbackT1,shape=interaction(rP,rB)),color="#3FB500",size=2)+
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackT1,group=interaction(rP,rB)),color="#3FB500")+
            ggtitle("Terrestrial basal production")+
-           scale_shape_manual(values=c(1,2,0,5))+
+           scale_shape_manual(values=c(1,2,0,5),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta_X$"),y="Feedback on production",
-                                                    shape=expression(paste("N:C plants (r"[P],")",", N:C decomposers (r"[B],")   ")))+
+                                                    shape="")+
            theme(plot.title = element_text(size=11),axis.text = element_text(size=10),
                  axis.title.y = element_text(size=12),
                  axis.title.x = element_text(size=14),
-                 legend.text = element_text(size=12),legend.title = element_text(size=13)))
+                 legend.text = element_text(size=12),legend.title = element_text(size=13))+
+           guides(shape = guide_legend(nrow = 2,ncol=2)))
   
   
   
@@ -1086,13 +1123,19 @@ for (s in c("C-limited","N-limited")){
                       aes(x=Phi,y=mean_feedbackT2,shape=interaction(rP,rB)),color="#3D8814",size=2)+
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackT2,group=interaction(rP,rB)),color="#3D8814")+
            ggtitle("Terrestrial secondary production")+
-           scale_shape_manual(values=c(1,2,0,5))+
+           scale_shape_manual(values=c(1,2,0,5),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta_X$"),y="",
-                                                    shape=expression(paste("N:C plants (r"[P],")",", N:C decomposers (r"[B],")   ")))+
+                                                    shape="")+
            theme(plot.title = element_text(size=11),axis.text = element_text(size=10),
                  axis.title.y = element_text(size=12),
                  axis.title.x = element_text(size=14),
-                 legend.text = element_text(size=12),legend.title = element_text(size=13)))
+                 legend.text = element_text(size=12),legend.title = element_text(size=13))+ 
+           guides(shape = guide_legend(nrow = 2,ncol=2)))
+  
+  
   
   assign(paste0("p_",3),
          ggplot(NULL)+
@@ -1100,13 +1143,15 @@ for (s in c("C-limited","N-limited")){
                       aes(x=Phi,y=mean_feedbackA1,shape=interaction(rP,rB)),color="#2EAEBF",size=2)+
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackA1,group=interaction(rP,rB)),color="#2EAEBF")+
            ggtitle("Aquatic basal production")+
-           scale_shape_manual(values=c(1,2,0,5))+
+           scale_shape_manual(values=c(1,2,0,5),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta_X$"),y="",
-                                                    shape=expression(paste("N:C plants (r"[P],")",", N:C decomposers (r"[B],")   ")))+
+                                                    shape="")+
            theme(plot.title = element_text(size=11),axis.text = element_text(size=10),
                  axis.title.y = element_text(size=12),
                  axis.title.x = element_text(size=14),
-                 legend.text = element_text(size=12),legend.title = element_text(size=13)))
+                 legend.text = element_text(size=12),legend.title = element_text(size=13))+
+           guides(shape = guide_legend(nrow = 2,ncol=2)))
   
   assign(paste0("p_",4),
          ggplot(NULL)+
@@ -1114,13 +1159,15 @@ for (s in c("C-limited","N-limited")){
                       aes(x=Phi,y=mean_feedbackA2,shape=interaction(rP,rB)),color="#2B50A7",size=2)+
            geom_line(data=d2_mean_rep,aes(x=Phi,y=mean_feedbackA2,group=interaction(rP,rB)),color="#2B50A7")+
            ggtitle("Aquatic secondary production")+
-           scale_shape_manual(values=c(1,2,0,5))+
+           scale_shape_manual(values=c(1,2,0,5),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
            the_theme+ geom_hline(yintercept=0)+labs(x=TeX("$\\Delta_X$"),y="",
-                                                    shape=expression(paste("N:C plants (r"[P],")",", N:C decomposers (r"[B],")   ")))+
+                                                    shape="")+
            theme(plot.title = element_text(size=11),axis.text = element_text(size=10),
                  axis.title.y = element_text(size=12),
                  axis.title.x = element_text(size=14),
-                 legend.text = element_text(size=12),legend.title = element_text(size=13)))
+                 legend.text = element_text(size=12),legend.title = element_text(size=13))+
+           guides(shape = guide_legend(nrow = 2,ncol=2)))
   
   
   if (s=="N-limited"){
@@ -1132,11 +1179,13 @@ for (s in c("C-limited","N-limited")){
       geom_line(data=d2_mean_rep3,aes(x=Phi,y=mean_feedbackA2,group=interaction(rP,rB)),color="#2EAEBF")+
       ggtitle("")+the_theme+
       scale_shape_manual(values=c(1,0))+
+      theme(axis.text.x = element_text(size=11),axis.text.y = element_text(size=11))+
+      scale_x_continuous(breaks = c(0,1))+
       geom_hline(yintercept=0)+labs(x=TeX(""),y="",
                                     shape="",color="")+theme(legend.position = "none",text=element_text(size=5))
     p_3=p_3 +
       annotation_custom(grob=ggplotGrob(p_small),
-                        ymin = 0.00005, ymax=0.00015, xmin=-.1, xmax=.66)
+                        ymin = 0.00005, ymax=0.00015, xmin=-.07, xmax=.7)
     
     
   }
@@ -1232,11 +1281,6 @@ ode_metaecosystem=function(t,state,param){
   
 }
 
-
-
-
-
-
 data_change=function(data){
   colors = c("Consumers" = "darkorange", "Producers" = "green3", "Nitrogen" = "darkorchid2")
   
@@ -1251,14 +1295,13 @@ data_change=function(data){
   return(data)
 }
 
-
 colors = c("Consumers" = "darkorange", "Producers" = "green3")
 
-Get_transient_dynamics=function(way="T",phi=0,limitation="C-limited",NCplant=.025,NCdecomp=.12){
+Get_transient_dynamics=function(way="T",delta=0,limitation="C-limited",NCplant=.025,NCdecomp=.12){
   
   # reaching equilibrium
   param=Get_classical_param(scena =limitation,coupling = T)
-  param[c("pP","pH","pC","pB")]=phi
+  param[c("pP","pH","pC","pB")]=delta
   param["rB"]=NCdecomp
   param["rP"]=NCplant
   state=Get_initial_values(param)
@@ -1327,6 +1370,8 @@ Get_transient_dynamics=function(way="T",phi=0,limitation="C-limited",NCplant=.02
     geom_line(aes(x=Time,y=value,color=trophic_level),lwd=1)+
     geom_rect(data=tibble(xmin=100,xmax=200,ymin=min(data_save$value)-.75,ymax=min(data_save$value)-.5),
               aes(xmin=xmin,ymin=ymin,xmax=xmax,ymax=ymax),fill="#61CBFD")+
+    geom_text(data=tibble(x=150,y=min(data_save$value)+.3),
+              aes(x=x,y=y),label=TeX("$\\Delta_X + 0.1$"),size=5,family = "NewCenturySchoolbook")+
     labs(x="Time",y="Scaled densities",color="")+scale_color_manual(values=colors)+
     facet_grid(.~foodweb)+the_theme+xlim(0,400)+
     theme(strip.text.x = element_text(size=12),legend.text = element_text(size=15))+
@@ -1336,38 +1381,205 @@ Get_transient_dynamics=function(way="T",phi=0,limitation="C-limited",NCplant=.02
 }
 
 param_for_plot=tibble(way=c("T","A","T","T","T","T","T","T","T"),
-                      phi=c(.5,.5,0,0,0,0,0,.5,.9),
+                      delta=c(.5,.5,0,0,0,0,0,.5,.9),
                       NCp=c(.025,.025,.025,.025,.1,.1,.1,.1,.1),
                       NCd=c(.12,.12,.12,.25,.12,.25,.25,.25,.25),
                       limitation=c("C-limited","C-limited","N-limited","N-limited","N-limited","N-limited","N-limited","N-limited","N-limited"))
 
 
 for (i in 1:nrow(param_for_plot)){
-  assign(paste0("p_",i),Get_transient_dynamics(way=param_for_plot$way[i],phi = param_for_plot$phi[i],
+  assign(paste0("p_",i),Get_transient_dynamics(way=param_for_plot$way[i],delta = param_for_plot$delta[i],
                                                limitation = param_for_plot$limitation[i],
                                                NCplant = param_for_plot$NCp[i],NCdecomp = param_for_plot$NCd[i]))
   
 }
 
 p_tot=ggarrange(ggarrange(p_1,p_2,ncol = 2,nrow = 1,legend = "none",labels=c(letters[1],"")),
-                ggarrange(p_3+ggtitle(TeX("$r_B = 0.12, r_P = 0.025$")),p_4+ggtitle(TeX("$r_B = 0.25, r_P = 0.025$"))+
+                ggarrange(p_3+ggtitle(TeX("$\\alpha_B = 0.12, \ \ \\alpha_P = 0.025$")),p_4+ggtitle(TeX("$\\alpha_B = 0.25, \ \ \\alpha_P = 0.025$"))+
                             theme(axis.title.y = element_blank()),
-                          p_5+ggtitle(TeX("$r_B = 0.12, r_P = 0.1$")),p_6+ggtitle(TeX("$r_B = 0.25, r_P = 0.1$"))+
+                          p_5+ggtitle(TeX("$\\alpha_B = 0.12, \ \ \\alpha_P = 0.1$")),p_6+ggtitle(TeX("$\\alpha_B = 0.25, \ \ \\alpha_P = 0.1$"))+
                             theme(axis.title.y = element_blank()),
                           nrow = 2,ncol = 2,labels = c(letters[2],"","",""),legend = "none"),
-                ggarrange(p_7+ggtitle(TeX("$\\phi_X = 0$")),p_8+ggtitle(TeX("$\\phi_X = 0.5$"))+theme(axis.title.y = element_blank()),
-                          p_9+ggtitle(TeX("$\\phi_X = 0.9$"))+theme(axis.title.y = element_blank()),legend = "bottom",
+                ggarrange(p_7+ggtitle(TeX("$\\Delta_X = 0$")),p_8+ggtitle(TeX("$\\Delta_X = 0.5$"))+theme(axis.title.y = element_blank()),
+                          p_9+ggtitle(TeX("$\\Delta_X = 0.9$"))+theme(axis.title.y = element_blank()),legend = "bottom",
                           nrow = 1,ncol = 3,labels = c(letters[3],"",""),common.legend = T)
                 ,nrow=3,heights = c(1,2,1.3))
 
-ggsave("./Figures/SI/Pulse_coupling_effects2.pdf",p_tot,width =10,height = 14 )
+ggsave("./Figures/SI/Pulse_coupling_effects.pdf",p_tot,width =10,height = 14 )
 
 
 
 
 
 
-## >> Varying the parameters ----
+## >> Switching limitation ----
+
+limitation=tibble()
+param=Get_classical_param(scena = "Switch-C-N")
+for (i in seq(0,1,length.out=50)){
+  
+  param[c("pP",'pB','pC','pG')]=i
+  state=Get_initial_values(param)
+  
+  data_save=Compute_ode(state,param,n_time = 10000,
+                        type_ode = "full")
+  Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
+  limit=Get_limitation(Eq$Eq,param)
+  limitation=rbind(limitation,Eq$Eq%>%add_column(., Limitation=limit$Limitation,Ratio=limit$Ratio,Coupling=i))
+}
+
+p=ggplot(limitation%>%
+           melt(., measure.vars=c("Ratio","Herbivores_C","Consumers_C"))%>%
+           mutate(., variable=recode_factor(variable,"Ratio"="Slim",
+                                            "Herbivores_C"="Grazers",
+                                            "Consumers_C"="Consumer of decomposers")))+
+  geom_line(aes(x=Coupling,y=value))+
+  facet_wrap(.~variable,scales = "free")+the_theme+
+  labs(x=TeX("$\\Delta$"),y="")+
+  theme(strip.background.x = element_blank())+
+  geom_line(data=tibble(variable="Slim",x=seq(0,1,length.out=100),y=1),aes(x=x,y=y),color="red")+
+  geom_text(data=tibble(variable="Slim",x=c(.7,.3),y=c(.83,1.1),name=c("C-limited","N-limited")),
+            aes(x=x,y=y,label=name,color=name),fontface="bold")+
+  geom_vline(data=tibble(variable=c("Consumer of decomposers","Grazers"),
+                         x=rep(limitation$Coupling[min(which(limitation$Ratio>1))],2)),
+             aes(xintercept=x),color="red")+
+  scale_color_manual(values=c("#B3925F","#8340A2"))+
+  theme(legend.position = "none",strip.text.x = element_text(size=12),axis.title.x = element_text(size=16))
+
+ggsave("./Figures/SI/Switching_limitation.pdf",width = 8,height = 3)
+
+
+
+## >> 8) Asymmetry in spatial flows ----
+
+#production
+
+index=1
+for (scena in c("C-limited","N-limited")){
+  d2=read.table("./Table/Asymmetry_flows_prod.csv",sep=";")%>%
+    filter(., Limitation==scena)
+  
+  index2=1
+  
+  list_plot=list()
+  name_prod=c("Terr. basal production","Aqu. basal production",
+              "Terr. secondary production","Aqu. secondary production")
+  
+  for (alpha in 2){
+    
+    for (k in 1:4){
+      
+      if (k %in% c(1,3)){
+        pal_col=pal_terr(100)
+      }else { pal_col=pal_aqua(100)}
+      
+      list_plot[[index2]]=ggplot(d2[((alpha-1)*(nrow(d2)/4)+1):((alpha)*(nrow(d2)/4)),]%>%melt(., measure.vars=c("P1_bidirec_T","P1_bidirec_A","P2_bidirec_T","P2_bidirec_A")[k]))+
+        geom_tile(aes(x=Phi_A,y=Phi_T,fill=as.numeric(value)))+
+        the_theme+
+        ggtitle(name_prod[k])+
+        labs(x=substitute(paste("Frac. subsidies from aqu. eco. (",Delta[A],")")),
+             y=substitute(paste("Frac. subsidies from terr. eco. (",Delta["T"],")")),
+             fill="")+
+        scale_fill_gradientn(colors = pal_col)+
+        geom_abline(slope=1,intercept = 0,color="black",lwd=.75)
+      
+      index2=index2+1
+    }
+  }
+  
+  if (scena=="C-limited"){
+    list_plot[[1]]=list_plot[[1]]+scale_fill_gradientn(colors =pal_terr(100),breaks=c(4.75,4.8))
+    list_plot[[3]]=list_plot[[3]]+scale_fill_gradientn(colors =pal_terr(100),breaks=c(1.13,1.14,1.15))
+  }
+  if (scena=="N-limited"){
+    list_plot[[2]]=list_plot[[2]]+scale_fill_gradientn(colors =pal_aqua(100),breaks=c(.51,.53))
+  }
+  
+  assign(paste0("p_",index),
+         ggarrange(plotlist=list_plot,ncol = 2,nrow=2))
+  index=index+1
+}
+
+p=ggarrange(p_1,p_2,nrow=2,ncol=1,labels = LETTERS[1:2],hjust = -2)
+ggsave("./Figures/SI/Asymmetry_flow.pdf",p,width = 10,height = 16)
+
+
+
+#feedback
+
+index=1
+for (scena_flow in 1:2){
+  
+  d2=read.table("./Table/Asymmetry_flows_feedback.csv",sep=";")%>%
+    filter(., Varying==unique(.$Varying)[scena_flow])
+  
+  index2=1
+  
+  list_plot=list()
+  name_prod=c("Feedback on terr. basal prod.","Feedback on aq. basal prod.","Feedback on aq. sec. prod.")
+  
+  for (scena in c("C-limited","N-limited")){
+    
+    if (scena_flow==1){
+      
+      list_plot[[index2]]=ggplot(d2%>%filter(., Scenario==scena)%>%
+                                   melt(., measure.vars=c("Feedback_T_1","Feedback_A_1"))%>%
+                                   mutate(., variable=recode_factor(variable,"Feedback_T_1"="Feedb. on basal terr. prod.",
+                                                                    "Feedback_A_1"="Feedb. on basal aqu. prod.")))+
+        geom_line(aes(x=p_T,y=value,color=Asymmetry,
+                      group=interaction(Asymmetry,rB,rP)),lwd=1)+
+        facet_wrap(variable~.,scales = "free")+
+        the_theme+
+        geom_hline(yintercept = 0)+
+        labs(x=substitute(paste("Frac. subsidies exp. terr. eco. ",Delta["T"])),color="",linetype="",y="")+
+        scale_color_manual(values=c(viridis(5),"red"),
+                           labels=c(substitute(paste(Delta["A"]," = 0")),
+                                    substitute(paste(Delta["A"]," = 0.25")),
+                                    substitute(paste(Delta["A"]," = 0.5")),
+                                    substitute(paste(Delta["A"]," = 0.75")),
+                                    substitute(paste(Delta["A"]," = 1")),
+                                    substitute(paste(Delta["A"]," = ",Delta["A"]))))+
+        scale_x_continuous(breaks = c(0, .5,1))
+      
+      
+    }else {
+      
+      list_plot[[index2]]=ggplot(d2%>%filter(., Scenario==scena)%>%
+                                   melt(., measure.vars=c("Feedback_T_1","Feedback_A_1"))%>%
+                                   mutate(., variable=recode_factor(variable,"Feedback_T_1"="Feedb. on basal terr. prod.",
+                                                                    "Feedback_A_1"="Feedb. on basal aqu. prod.")))+
+        geom_line(aes(x=p_A,y=value,color=Asymmetry,
+                      group=interaction(Asymmetry,rB,rP)),lwd=1)+
+        facet_wrap(variable~.,scales = "free")+
+        the_theme+
+        geom_hline(yintercept = 0)+
+        labs(x=substitute(paste("Frac. subsidies exp. aq. eco. ",Delta[A])),color="",linetype="",y="")+
+        scale_color_manual(values=c(viridis(5),"red"),
+                           labels=c(substitute(paste(Delta["T"]," = 0")),
+                                    substitute(paste(Delta["T"]," = 0.25")),
+                                    substitute(paste(Delta["T"]," = 0.5")),
+                                    substitute(paste(Delta["T"]," = 0.75")),
+                                    substitute(paste(Delta["T"]," = 1")),
+                                    substitute(paste(Delta["T"]," = ",Delta["A"]))))+
+        scale_x_continuous(breaks = c(0, .5,1))
+      
+      
+    }
+    index2=index2+1
+  }
+  
+  
+  assign(paste0("p_",index),
+         ggarrange(plotlist=list_plot,ncol = 2,nrow=1,common.legend = T,legend="bottom",labels=letters[1:2],hjust=-2))
+  index=index+1
+}
+
+p=ggarrange(p_1,p_2,nrow=2,labels=LETTERS[1:2])
+ggsave("./Figures/SI/Asymmetry_flow_feedback.pdf",p,width = 10,height = 7)
+
+
+
+## >> 9) Varying the parameters ----
 
 
 
@@ -1474,7 +1686,7 @@ for (resource in c("N","C")){
                                                                                                           reg_PP1_A="Aq. basal prod.",reg_PP1_T="Terr. basal prod.", 
                                                                                                           reg_PP2_A="Aq. sec. prod.")))+
            geom_point(aes(x=name_param,y=value,color=variable),shape=20,size=3,stroke = 1)+the_theme+
-           scale_color_manual(values=c("#3FB500","#2EAEBF","#2B50A7"))+labs(x="Parameter",y="Average change in LRR",color="")+geom_hline(yintercept = 0,linetype=9))
+           scale_color_manual(values=c("#3FB500","#2EAEBF","#2B50A7"))+labs(x="Parameter",y="Average change in production",color="")+geom_hline(yintercept = 0,linetype=9))
   
   
   
@@ -1496,8 +1708,8 @@ for (resource in c("N","C")){
 
 #ploting the results
 p_slope=ggarrange(p_C+labs(x=""),p_N,nrow=2,common.legend = T,legend = "bottom",
-                                 labels=LETTERS[1:2], font.label = list(size = 19),
-                                 hjust=-2)
+                  labels=LETTERS[1:2], font.label = list(size = 19),
+                  hjust=-2)
 ggsave("./Figures/SI/Slopes_variation.pdf",p_slope,width = 7,height = 6)
 
 
@@ -1541,7 +1753,7 @@ for (resource in c("N","C")){
   
   d2_melt=melt(d_all , measure.vars = c(paste0("PP1_A"),paste0("PP1_T"),paste0("PP2_A")))%>%
     mutate(., variable=recode_factor(variable,"PP1_A"="Aq. basal prod.","PP1_T"="Terr. basal prod.","PP2_A"="Aq. sec. prod."))
-  for (k in c("aP","aH","dH","eH")){
+  for (k in c("aP","aH","dH","eB")){
     if (resource=="N")    list_name_prod=c("eB","dB","IDa","lDa","ma",'aC')
     if (resource=="C")    list_name_prod=c("eB","dB","IDa","lDa","aBD","ma")
     
@@ -1549,8 +1761,10 @@ for (resource in c("N","C")){
     if (k %in% list_name_prod){
       
       dplot=filter(d2_melt,name_param==k)
-      assign(paste0("p_",k),ggplot(dplot)+geom_line(aes(x=Value,y=value,color=interaction(rP,rB)))+the_theme+scale_color_viridis(discrete = T)+
-               labs(y="LRR",x=k,color="rP, rB")+facet_wrap(.~variable,ncol=4,scales = "free")+
+      assign(paste0("p_",k),ggplot(dplot)+geom_line(aes(x=Value,y=value,color=interaction(rP,rB)),lwd=1)+the_theme+
+               scale_color_viridis(discrete = T,labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
+               labs(y="Production",x=k,color="rP, rB")+facet_wrap(.~variable,ncol=4,scales = "free")+
                theme(strip.background=element_rect(colour="transparent",fill="transparent"),strip.text.x = element_text(size=12))+
                geom_vline(xintercept = param[[k]],color="gray50",lwd=.1))
     } else{
@@ -1558,7 +1772,9 @@ for (resource in c("N","C")){
       dplot=filter(d2_melt,name_param==k)%>%
         mutate(.,variable=recode_factor(variable,
                                         "Basal prod. aq."='',"Basal prod. terr."="  ","Cons. prod. aq." = "   "))
-      assign(paste0("p_",k),ggplot(dplot)+geom_line(aes(x=Value,y=value,color=interaction(rP,rB)))+the_theme+scale_color_viridis(discrete = T)+
+      assign(paste0("p_",k),ggplot(dplot)+geom_line(aes(x=Value,y=value,color=interaction(rP,rB)),lwd=1)+the_theme+
+               scale_color_viridis(discrete = T,labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
                labs(y="Production",x=k,color="rP, rB")+facet_wrap(.~variable,ncol=4,scales = "free")+
                theme(strip.background=element_rect(colour="transparent",fill="transparent"),strip.text.x = element_text(size=12))+
                geom_vline(xintercept = param[[k]],color="gray50",lwd=.1))
@@ -1567,53 +1783,225 @@ for (resource in c("N","C")){
   
   
   p_tot=ggarrange(p_aP,
-                       p_aH+theme(strip.text.x = element_blank()),
-                       p_dH+theme(strip.text.x = element_blank()),
-                       p_eH+theme(strip.text.x = element_blank()),
-                       nrow=4,common.legend = T,legend = "bottom")
+                  p_aH+theme(strip.text.x = element_blank()),
+                  p_dH+theme(strip.text.x = element_blank()),
+                  p_eB+theme(strip.text.x = element_blank()),
+                  nrow=4,common.legend = T,legend = "bottom")
   
   ggsave(paste0("./Figures/SI/Sensibility_all_param_",resource,"_limited.pdf"),p_tot,width = 8,height = 9)
   
-  
-  
 }
 
 
 
-## >> Switching limitation ----
 
-limitation=tibble()
-param=Get_classical_param(scena = "Switch-C-N")
-for (i in seq(0,1,length.out=50)){
+
+
+
+
+
+
+## >> 10) Growth efficiency ----
+
+d2=read.table(paste0("./Table/Feedback_growth_efficiency.csv"),sep=";")
+
+p=ggplot(d2%>%melt(., measure.vars=c("Feedback_T_1","Feedback_A_1"))%>%
+           mutate(., variable=recode_factor(variable,"Feedback_T_1"="Feedb. on basal terr. prod.",
+                                            "Feedback_A_1"="Feedb. on basal aqu. prod.")))+
+  geom_point(aes(x=Phi,y=value,color=as.factor(eB)),size=1,shape=21)+
+  geom_line(aes(x=Phi,y=value,group=as.factor(eB),color=as.factor(eB)))+
+  facet_wrap(.~variable,scales = "free")+
+  scale_color_manual(values=viridis(3),labels=c(substitute(paste(" ",e[B]," = 0.5")),substitute(paste(" ",e[B]," = 0.75")),substitute(paste(" ",e[B]," = 1"))))+
+  the_theme+ 
+  geom_hline(yintercept=0)+labs(x=TeX("$\\Delta$"),y="Spatial feedback",color="")
+
+ggsave("./Figures/SI/Feedback_growth_efficiency.pdf",p,width=6,height = 3)
+
+
+
+
+
+## >> 11) Flexible stoichiometry ----
+
+
+n_point=10;p_coup=1;  
+param_space=expand.grid(rP=c(1/10),rB=c(0.12));p_seq=seq(0,1,length.out=n_point)
+Extract_equilibrium_from_dynamics=function(data,param,consumers=F){
   
-  param[c("pP",'pB','pC','pG')]=i
-  state=Get_initial_values(param)
+  n_begin=ifelse(consumers,19,15)
   
-  data_save=Compute_ode(state,param,n_time = 10000,
-                        type_ode = "full")
-  Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
-  limit=Get_limitation(Eq$Eq,param)
-  limitation=rbind(limitation,Eq$Eq%>%add_column(., Limitation=limit$Limitation,Ratio=limit$Ratio,Coupling=i))
+  data_mean=as_tibble(t(colMeans(data[(nrow(data)-100):nrow(data),-1])))
+  data_with_param=cbind(data_mean,matrix(unlist(param),ncol = length(param),nrow=1))
+  colnames(data_with_param)[n_begin:ncol(data_with_param)]=names(param)
+  
+  return(list(Eq=data_with_param))
+  
+}
+d2=tibble()
+
+for (s in c("C-limited")){ 
+  
+  for (nr in 1:nrow(param_space)){
+    for (p in p_seq){
+      
+      param=Get_classical_param(scena = s,coupling = F)
+      param$KN=.1
+      param$Nstar=6.9
+      
+      param$rP=param_space$rP[nr];param$rB=param_space$rB[nr]
+      param[c("pH",'pC',"pP","pB")]=p
+      state=Get_initial_values(param)
+      
+      
+      data_save=Compute_ode(state,param,n_time = 3000)
+      Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
+      
+      limit_ratio=Get_limitation(Eq$Eq,param)
+      
+      P1_bidirectional=Primary_production(Eq$Eq,param)
+      P2_bidirectional=Secondary_production(Eq$Eq,param)
+      
+      
+      d2=rbind(d2,Eq$Eq %>% add_column(Phi=p, Scenario=s,Flexibility="No",
+                                       P1_bidirec_T=P1_bidirectional$Terrestrial,P1_bidirec_A=P1_bidirectional$Aquatic,
+                                       P2_bidirec_T=P2_bidirectional$Terrestrial,P2_bidirec_A=P2_bidirectional$Aquatic,
+                                       Limitation=limit_ratio$Limitation))
+      
+      state_eq=as.numeric(Eq$Eq[1:14])
+      names(state_eq)=names(state)
+      
+
+      
+      
+      data_save=Compute_ode(state_eq,param,n_time = 3000,type_ode = "flexible_stoi")
+      Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
+      
+      limit_ratio=Get_limitation(Eq$Eq,param)
+      
+      P1_bidirectional=Primary_production(Eq$Eq,param)
+      P2_bidirectional=Secondary_production(Eq$Eq,param)
+      
+      
+      d2=rbind(d2,Eq$Eq %>% add_column(Phi=p, Scenario=s,Flexibility="YEs",
+                                       P1_bidirec_T=P1_bidirectional$Terrestrial,P1_bidirec_A=P1_bidirectional$Aquatic,
+                                       P2_bidirec_T=P2_bidirectional$Terrestrial,P2_bidirec_A=P2_bidirectional$Aquatic,
+                                       Limitation=limit_ratio$Limitation))
+      
+    }
+    
+  }
+
 }
 
-p=ggplot(limitation%>%
-         melt(., measure.vars=c("Ratio","Herbivores_C","Consumers_C"))%>%
-         mutate(., variable=recode_factor(variable,"Ratio"="Slim",
-                                          "Herbivores_C"="Grazers",
-                                          "Consumers_C"="Consumer of decomposers")))+
-  geom_line(aes(x=Coupling,y=value))+
-  facet_wrap(.~variable,scales = "free")+the_theme+
-  labs(x=TeX("$\\Delta$"),y="")+
-  theme(strip.background.x = element_blank())+
-  geom_line(data=tibble(variable="Slim",x=seq(0,1,length.out=100),y=1),aes(x=x,y=y),color="red")+
-  geom_text(data=tibble(variable="Slim",x=c(.7,.3),y=c(.83,1.1),name=c("C-limited","N-limited")),
-            aes(x=x,y=y,label=name,color=name),fontface="bold")+
-  geom_vline(data=tibble(variable=c("Consumer of decomposers","Grazers"),
-                         x=rep(limitation$Coupling[min(which(limitation$Ratio>1))],2)),
-             aes(xintercept=x),color="red")+
-  scale_color_manual(values=c("#B3925F","#8340A2"))+
-  theme(legend.position = "none",strip.text.x = element_text(size=12),axis.title.x = element_text(size=16))
 
-ggsave("./Figures/SI/Switching_limitation.pdf",width = 8,height = 3)
+plot(d2$Plants_N/d2$Plants_C)
 
 
+
+
+## >> Summary empirical data ----
+
+d_stoichio=read.table("./Empirical_data/Stoichio_NC.csv",sep=";")
+d_stoichio%>%
+  group_by(., Exporter_ecosyst)%>%
+  dplyr::rename(., "Ecosystem (exporting)" = Exporter_ecosyst)%>%
+  summarise(., .groups = "keep",
+            n=length(unique(Ratio)),
+            min=round(min(Ratio),5),
+            q25=round(quantile(Ratio,.25),5),
+            q50=round(quantile(Ratio,.5),5),
+            q75=round(quantile(Ratio,.75),5),
+            max=round(max(Ratio),5))%>%
+  add_column(., `Data references` =
+               sapply(1:length(unique(d_stoichio$Exporter_ecosyst)),
+                      function(x){
+                      return(paste0(unique(d_stoichio$Paper_ID[which(d_stoichio$Exporter_ecosyst==unique(d_stoichio$Exporter_ecosyst)[x])]),collapse = ", "))                       
+  }) )%>%
+  write.table(., "./Table/Summary_stoichio_data.csv",sep=",",row.names = F)
+
+
+
+
+
+
+
+
+
+
+for (r in c("N","C")){
+  assign(paste0("d_cross_",r),read.table(paste0("./Empirical_data/",r,"_flows_Aq_Terr.csv"),sep=";"))
+}
+
+d_cross=rbind(d_cross_C%>% add_column(Resource='C'),
+              d_cross_N%>%
+                add_column(Resource="N" )) %>%
+  filter(.,Coupling %in% c("Fresh. to terr.","Terr. to fresh."))%>%
+  
+  mutate(.,From_ecosys=recode_factor(From_ecosys,"Agroecosystem"="Grassland","Wetland"="Lake"))%>%
+  
+  mutate(.,To_ecosys=recode_factor(To_ecosys,"Agroecosystem"="Grassland","Wetland"="Lake"))%>%
+  
+  filter(., To_ecosys!="Desert",From_ecosys!="Desert")
+
+
+d_cross$Flow_class=sapply(1:nrow(d_cross),function(x){
+  if (d_cross$Flow[x]<1){ return("[0,1[")
+  }else if (d_cross$Flow[x]>=1 & d_cross$Flow[x]<5){
+    return("[1,5[")
+  }else if (d_cross$Flow[x]>=5 & d_cross$Flow[x]<20){
+    return("[5,20[")
+  }else if (d_cross$Flow[x]>=20 & d_cross$Flow[x]<100){
+    return("[20,100[")
+  }else {
+    return(">100")
+  }
+})
+
+d_cross$Mattyp1[which(d_cross$Coupling=="Terr. to fresh." & d_cross$Mattyp1=="Aqu. insects")]="Terr. inverteb."
+d_cross$Mattyp1[which(d_cross$Coupling=="Fresh. to terr." & d_cross$Mattyp1=="Small amphib.")]="Amphib."
+d_cross$Mattyp1[which(d_cross$Coupling=="Terr. to fresh." & d_cross$Mattyp1=="Small amphib.")]="Amphib."
+
+
+
+
+d_cross%>%
+  group_by(., Coupling,Resource)%>%
+  summarise(., .groups = "keep",
+            n=length(unique(Flow)),
+            min=round(min(Flow),5),
+            q25=round(quantile(Flow,.25),5),
+            q50=round(quantile(Flow,.5),5),
+            q75=round(quantile(Flow,.75),5),
+            max=round(max(Flow),5))%>%
+  add_column(., `Data references` =
+               sapply(1:nrow(.),
+                      function(x){
+                        return(paste0(unique(d_cross$Paper_ID[which(d_cross$Resource==.$Resource[x] 
+                                                                    & d_cross$Coupling==.$Coupling[x])]),collapse = ", "))                       
+                      }) )%>%
+  write.table(., "./Table/Summary_flows.csv",sep=",",row.names = F)
+
+
+
+
+## >> Variation N stocks ----
+
+index=1
+for (s in c("C-limited","N-limited")){
+  
+  d2=read.table(paste0("./Table/Feedback_",s,".csv"),sep=";")
+  colnames(d2)[13:14]=c("Terrestrial","Aquatic")
+  assign(paste0("p_",index),ggplot(d2%>%melt(., measure.vars=c("Terrestrial","Aquatic")))+
+           geom_line(aes(x=Phi,y=value,group=interaction(rP,rB),color=interaction(rP,rB)))+
+           facet_wrap(.~variable,ncol = 2,scales = "free")+
+           scale_color_manual(values=viridis(4),labels=c(substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.12   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.12  ")),
+                                                         substitute(paste(" ",alpha[P]," = 0.025",", ",alpha[B]," = 0.25   ")),substitute(paste(" ",alpha[P]," = 0.1",", ",alpha[B]," = 0.25  "))))+
+           the_theme+ labs(x=TeX("$\\Delta$"),y="Nitrogen stocks",
+                           color=""))
+  index=index+1
+}
+
+
+
+p=ggarrange(p_1,p_2,nrow=2,labels = c("A","B"))
+ggsave("./Figures/SI/Nitrogen_changes.pdf",p,width =8,height = 6 )
