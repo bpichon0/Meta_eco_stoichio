@@ -1297,7 +1297,8 @@ data_change=function(data){
 
 colors = c("Consumers" = "darkorange", "Producers" = "green3")
 
-Get_transient_dynamics=function(way="T",delta=0,limitation="C-limited",NCplant=.025,NCdecomp=.12){
+Get_transient_dynamics=function(way="T",delta=0,limitation="C-limited",NCplant=.025,NCdecomp=.12,
+                                type_increase){
   
   # reaching equilibrium
   param=Get_classical_param(scena =limitation,coupling = T)
@@ -1366,16 +1367,32 @@ Get_transient_dynamics=function(way="T",delta=0,limitation="C-limited",NCplant=.
                                                                              "Decomposers_C","Consumers_C"))%>%
     mutate(., foodweb=recode_factor(foodweb,"Aquatic"="Aquatic ecosystem","Terrestrial" = "Terrestrial ecosystem"))
   
-  p=ggplot(data_save)+
-    geom_line(aes(x=Time,y=value,color=trophic_level),lwd=1)+
-    geom_rect(data=tibble(xmin=100,xmax=200,ymin=min(data_save$value)-.75,ymax=min(data_save$value)-.5),
-              aes(xmin=xmin,ymin=ymin,xmax=xmax,ymax=ymax),fill="#61CBFD")+
-    geom_text(data=tibble(x=150,y=min(data_save$value)+.3),
-              aes(x=x,y=y),label=TeX("$\\Delta_X + 0.1$"),size=5,family = "NewCenturySchoolbook")+
-    labs(x="Time",y="Scaled densities",color="")+scale_color_manual(values=colors)+
-    facet_grid(.~foodweb)+the_theme+xlim(0,400)+
-    theme(strip.text.x = element_text(size=12),legend.text = element_text(size=15))+
-    guides(color = guide_legend(override.aes = list(size = 10)))
+  
+  if (type_increase=="A"){
+    p=ggplot(data_save)+
+      geom_line(aes(x=Time,y=value,color=trophic_level),lwd=1)+
+      geom_rect(data=tibble(xmin=100,xmax=200,ymin=min(data_save$value)-.75,ymax=min(data_save$value)-.5),
+                aes(xmin=xmin,ymin=ymin,xmax=xmax,ymax=ymax),fill="#61CBFD")+
+      geom_text(data=tibble(x=150,y=min(data_save$value)+.3),
+                aes(x=x,y=y),label=TeX("$\\Delta_A + 0.1$"),size=5,family = "NewCenturySchoolbook")+
+      labs(x="Time",y="Scaled densities",color="")+scale_color_manual(values=colors)+
+      facet_grid(.~foodweb)+the_theme+xlim(0,400)+
+      theme(strip.text.x = element_text(size=12),legend.text = element_text(size=15))+
+      guides(color = guide_legend(override.aes = list(size = 10)))
+    
+  }else {
+    p=ggplot(data_save)+
+      geom_line(aes(x=Time,y=value,color=trophic_level),lwd=1)+
+      geom_rect(data=tibble(xmin=100,xmax=200,ymin=min(data_save$value)-.75,ymax=min(data_save$value)-.5),
+                aes(xmin=xmin,ymin=ymin,xmax=xmax,ymax=ymax),fill="#61CBFD")+
+      geom_text(data=tibble(x=150,y=min(data_save$value)+.3),
+                aes(x=x,y=y),label=TeX("$\\Delta_T + 0.1$"),size=5,family = "NewCenturySchoolbook")+
+      labs(x="Time",y="Scaled densities",color="")+scale_color_manual(values=colors)+
+      facet_grid(.~foodweb)+the_theme+xlim(0,400)+
+      theme(strip.text.x = element_text(size=12),legend.text = element_text(size=15))+
+      guides(color = guide_legend(override.aes = list(size = 10)))
+    
+  }
   
   return(p)
 }
@@ -1384,13 +1401,15 @@ param_for_plot=tibble(way=c("T","A","T","T","T","T","T","T","T"),
                       delta=c(.5,.5,0,0,0,0,0,.5,.9),
                       NCp=c(.025,.025,.025,.025,.1,.1,.1,.1,.1),
                       NCd=c(.12,.12,.12,.25,.12,.25,.25,.25,.25),
-                      limitation=c("C-limited","C-limited","N-limited","N-limited","N-limited","N-limited","N-limited","N-limited","N-limited"))
+                      limitation=c("C-limited","C-limited","N-limited","N-limited","N-limited","N-limited","N-limited","N-limited","N-limited"),
+                      type_coupling=c("A","T","A","A","A","A","A","A","A"))
 
 
 for (i in 1:nrow(param_for_plot)){
   assign(paste0("p_",i),Get_transient_dynamics(way=param_for_plot$way[i],delta = param_for_plot$delta[i],
                                                limitation = param_for_plot$limitation[i],
-                                               NCplant = param_for_plot$NCp[i],NCdecomp = param_for_plot$NCd[i]))
+                                               NCplant = param_for_plot$NCp[i],NCdecomp = param_for_plot$NCd[i],
+                                               type_increase=param_for_plot$type_coupling[i]))
   
 }
 
@@ -1400,8 +1419,8 @@ p_tot=ggarrange(ggarrange(p_1,p_2,ncol = 2,nrow = 1,legend = "none",labels=c(let
                           p_5+ggtitle(TeX("$\\alpha_B = 0.12, \ \ \\alpha_P = 0.1$")),p_6+ggtitle(TeX("$\\alpha_B = 0.25, \ \ \\alpha_P = 0.1$"))+
                             theme(axis.title.y = element_blank()),
                           nrow = 2,ncol = 2,labels = c(letters[2],"","",""),legend = "none"),
-                ggarrange(p_7+ggtitle(TeX("$\\Delta_X = 0$")),p_8+ggtitle(TeX("$\\Delta_X = 0.5$"))+theme(axis.title.y = element_blank()),
-                          p_9+ggtitle(TeX("$\\Delta_X = 0.9$"))+theme(axis.title.y = element_blank()),legend = "bottom",
+                ggarrange(p_7+ggtitle(TeX("$\\Delta_A = 0$")),p_8+ggtitle(TeX("$\\Delta_A = 0.5$"))+theme(axis.title.y = element_blank()),
+                          p_9+ggtitle(TeX("$\\Delta_A = 0.9$"))+theme(axis.title.y = element_blank()),legend = "bottom",
                           nrow = 1,ncol = 3,labels = c(letters[3],"",""),common.legend = T)
                 ,nrow=3,heights = c(1,2,1.3))
 

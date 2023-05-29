@@ -327,6 +327,7 @@ ode_metaecosystem = julia_eval("
 
 function ode_metaecosystem(du, u, p, t)
 
+    u[u .< 1e-5] .= 0
     INt, IDt, lNt, lDt, mt, eH, aH, aP, dH, dP, INa, IDa, lNa, lDa, ma, eC, eB, aC, aBN, aBD, dC, dB, pH, pC, pP, pB, rP, rH, rC, rB, colim = p
     H, HN, C, CN, P, PN, B, BN, DCt, DNt, DCa, DNa, Nt, Na = u
 
@@ -343,7 +344,7 @@ function ode_metaecosystem(du, u, p, t)
         immo = copy(((rB - (DNa / DCa)) / rB) * eB * fBD * fBN)
     end
 
-
+    
 
 
     decompo = copy(immo / ((rB - (DNa / DCa)) / rB))
@@ -402,6 +403,7 @@ ode_metaecosystem_feedback_no_A_to_T = julia_eval("
 
 function ode_metaecosystem_feedback_no_A_to_T(du, u, p, t)
 
+    u[u .< 1e-5] .= 0
     INt, IDt, lNt, lDt, mt, eH, aH, aP, dH, dP, INa, IDa, lNa, lDa, ma, eC, eB, aC, aBN, aBD, dC, dB, pH, pC, pP, pB, rP, rH, rC, rB, colim = p
     H, HN, C, CN, P, PN, B, BN, DCt, DNt, DCa, DNa, Nt, Na = u
 
@@ -473,6 +475,7 @@ ode_metaecosystem_feedback_no_A_to_T_DC = julia_eval("
 
 function ode_metaecosystem_feedback_no_A_to_T_DC(du, u, p, t)
 
+    u[u .< 1e-5] .= 0
     INt, IDt, lNt, lDt, mt, eH, aH, aP, dH, dP, INa, IDa, lNa, lDa, ma, eC, eB, aC, aBN, aBD, dC, dB, pH, pC, pP, pB, rP, rH, rC, rB, colim = p
     H, HN, C, CN, P, PN, B, BN, DCt, DNt, DCa, DNa, Nt, Na = u
 
@@ -542,6 +545,7 @@ ode_metaecosystem_feedback_no_T_to_A = julia_eval("
 
 function ode_metaecosystem_feedback_no_T_to_A(du, u, p, t)
 
+    u[u .< 1e-5] .= 0
     INt, IDt, lNt, lDt, mt, eH, aH, aP, dH, dP, INa, IDa, lNa, lDa, ma, eC, eB, aC, aBN, aBD, dC, dB, pH, pC, pP, pB, rP, rH, rC, rB, colim = p
     H, HN, C, CN, P, PN, B, BN, DCt, DNt, DCa, DNa, Nt, Na = u
 
@@ -612,6 +616,7 @@ ode_metaecosystem_feedback_no_T_to_A_DC = julia_eval("
 
 function ode_metaecosystem_feedback_no_T_to_A_DC(du, u, p, t)
 
+    u[u .< 1e-5] .= 0
     INt, IDt, lNt, lDt, mt, eH, aH, aP, dH, dP, INa, IDa, lNa, lDa, ma, eC, eB, aC, aBN, aBD, dC, dB, pH, pC, pP, pB, rP, rH, rC, rB, colim = p
     H, HN, C, CN, P, PN, B, BN, DCt, DNt, DCa, DNa, Nt, Na = u
 
@@ -683,6 +688,7 @@ ode_metaecosystem_DC = julia_eval("
 
 function ode_metaecosystem_DC(du, u, p, t)
 
+    u[u .< 1e-5] .= 0
     INt, IDt, lNt, lDt, mt, eH, aH, aP, dH, dP, INa, IDa, lNa, lDa, ma, eC, eB, aC, aBN, aBD, dC, dB, pH, pC, pP, pB, rP, rH, rC, rB, colim = p
     H, HN, C, CN, P, PN, B, BN, DCt, DNt, DCa, DNa, Nt, Na = u
 
@@ -761,6 +767,7 @@ ode_metaecosystem_Topconsumers = julia_eval("
 
 function ode_metaecosystem_Topconsumers(du, u, p, t)
 
+    u[u .< 1e-5] .= 0
     INt, IDt, lNt, lDt, mt, eH, aH, aP, dH, dP, INa, IDa, lNa, lDa, ma, eC, eB, aC,
     aBN, aBD, dC, dB, pH, pC, pP, pB, rP, rH, rC, rB,
     colim, dTH, dTC, aTH, aTC, eTH, eTC, rTC, rTH, pTC, pTH = p
@@ -845,6 +852,7 @@ ode_metaecosystem_feedback_no_A_to_T_topconsumers = julia_eval("
 
 function ode_metaecosystem_feedback_no_A_to_T_topconsumers(du, u, p, t)
 
+    u[u .< 1e-5] .= 0
     INt, IDt, lNt, lDt, mt, eH, aH, aP, dH, dP, INa, IDa, lNa, lDa, ma, eC, eB, aC,
     aBN, aBD, dC, dB, pH, pC, pP, pB, rP, rH, rC, rB,
     colim, dTH, dTC, aTH, aTC, eTH, eTC, rTC, rTH, pTC, pTH = p
@@ -924,6 +932,7 @@ ode_metaecosystem_feedback_no_T_to_A_topconsumers = julia_eval("
 
 function ode_metaecosystem_feedback_no_T_to_A_topconsumers(du, u, p, t)
 
+    u[u .< 1e-5] .= 0
     INt, IDt, lNt, lDt, mt, eH, aH, aP, dH, dP, INa, IDa, lNa, lDa, ma, eC, eB, aC,
     aBN, aBD, dC, dB, pH, pC, pP, pB, rP, rH, rC, rB,
     colim, dTH, dTC, aTH, aTC, eTH, eTC, rTC, rTH, pTC, pTH = p
@@ -1000,6 +1009,7 @@ ode_metaecosystem_flexible_stoichio = julia_eval("
 
 function ode_metaecosystem_flexible_stoichio(du, u, p, t)
 
+    u[u .< 1e-5] .= 0
     INt, IDt, lNt, lDt, mt, eH, aH, aP, dH, dP, INa, IDa, lNa, lDa, ma, eC, eB, aC, aBN, aBD, dC, dB, pH, pC, pP, pB, rP, rH, rC, rB, colim, KN,Nstar = p
     H, HN, C, CN, P, PN, B, BN, DCt, DNt, DCa, DNa, Nt, Na = u
 
