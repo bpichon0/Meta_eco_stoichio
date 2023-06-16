@@ -327,6 +327,9 @@ State_topconsum <- function(state, param) {
 
 ### Dynamics ----
 
+#Below, all the model functions defined using julia language
+
+#the full model 
 ode_metaecosystem <- julia_eval("
 
 function ode_metaecosystem(du, u, p, t)
@@ -403,6 +406,7 @@ end
 
 
 
+#full model with losses of resources exported by the aquatic ecosystem
 ode_metaecosystem_feedback_no_A_to_T <- julia_eval("
 
 function ode_metaecosystem_feedback_no_A_to_T(du, u, p, t)
@@ -474,6 +478,7 @@ end
 ")
 
 
+#full model with losses of resources exported by the aquatic ecosystem and donnor controlled functional responses
 
 ode_metaecosystem_feedback_no_A_to_T_DC <- julia_eval("
 
@@ -545,6 +550,8 @@ end
 
 ")
 
+#full model with losses of resources exported by the terrestrial ecosystem 
+
 ode_metaecosystem_feedback_no_T_to_A <- julia_eval("
 
 function ode_metaecosystem_feedback_no_T_to_A(du, u, p, t)
@@ -615,6 +622,7 @@ end
 
 ")
 
+#full model with losses of resources exported by the terrestrial ecosystem and donnor controlled functional responses
 
 ode_metaecosystem_feedback_no_T_to_A_DC <- julia_eval("
 
@@ -686,6 +694,8 @@ end
 
 ")
 
+
+#full model with donnor controlled functional responses
 
 
 ode_metaecosystem_DC <- julia_eval("
@@ -765,6 +775,7 @@ end
 
 
 
+#full model with top consumers
 
 ode_metaecosystem_Topconsumers <- julia_eval("
 
@@ -851,6 +862,8 @@ end
 ")
 
 
+#full model with losses of resources exported by the aquatic ecosystem and top consumers
+
 ode_metaecosystem_feedback_no_A_to_T_topconsumers <- julia_eval("
 
 
@@ -930,6 +943,7 @@ end
 
 ")
 
+#full model with losses of resources exported by the terrestrial ecosystem and top consumers
 
 ode_metaecosystem_feedback_no_T_to_A_topconsumers <- julia_eval("
 
@@ -1009,80 +1023,6 @@ end
 
 ")
 
-ode_metaecosystem_flexible_stoichio <- julia_eval("
-
-function ode_metaecosystem_flexible_stoichio(du, u, p, t)
-
-    u[u .< 1e-5] .= 0
-    INt, IDt, lNt, lDt, mt, eH, aH, aP, dH, dP, INa, IDa, lNa, lDa, ma, eC, eB, aC, aBN, aBD, dC, dB, pH, pC, pP, pB, rP, rH, rC, rB, colim, KN,Nstar = p
-    H, HN, C, CN, P, PN, B, BN, DCt, DNt, DCa, DNa, Nt, Na = u
-
-    fH = copy(aH * P * H)
-    fP = copy(aP * Nt * P)
-    fC = copy(aC * B * C)
-    fBN = copy(aBN * Na)
-    fBD = copy(aBD * DCa)
-
-    if colim == 0
-        immo = copy(min(((rB - (DNa / DCa)) / rB) * eB * fBD, fBN))
-    else
-        immo = copy(((rB - (DNa / DCa)) / rB) * eB * fBD * fBN)
-    end
-
-    alpha_P=copy((((.1-0.025)*(Nt-Nstar))/(KN+(Nt-Nstar)))+.025)
-
-    println(alpha_P)
-
-    decompo = copy(immo / ((rB - (DNa / DCa)) / rB))
-
-    du[1] = eH * fH - dH * H
-    du[2] = rH * eH * fH - rH * dH * H
-
-    du[3] = eC * fC - dC * C
-    du[4] = rC * eC * fC - rC * dC * C
-
-    du[5] = fP - fH - dP * P
-    du[6] = alpha_P * du[5]
-
-    du[7] = decompo - fC - dB * B - ma * B
-    du[8] = immo * rB + decompo * (DNa / DCa) - fC * rB - dB * B * rB - ma * B * rB
-
-
-    du[9] = IDt - lDt * DCt +
-            dH * H * (1 - pH) + dP * P * (1 - pP) - mt * DCt +
-            dC * C * pC + dB * B * pB
-
-
-    du[10] = IDt * (DNt / DCt) - lDt * DNt +
-             rH * dH * H * (1 - pH) + alpha_P * dP * P * (1 - pP) - mt * DNt +
-             rC * dC * C * pC + rB * dB * B * pB
-
-    du[11] = IDa - lDa * DCa +
-             dC * C * (1 - pC) + dB * B * (1 - pB) - decompo +
-             dH * H * pH + dP * P * pP
-
-
-    du[12] = IDa * (DNa / DCa) - lDa * DNa +
-             rC * dC * C * (1 - pC) + rB * dB * B * (1 - pB) - decompo * (DNa / DCa) +
-             rH * dH * H * pH + alpha_P * dP * P * pP
-
-
-
-
-    du[13] = INt - lNt * Nt - alpha_P * fP +
-             (alpha_P - eH * rH) * fH * (1 - pH) + (rB - eC * rC) * fC * pC +
-             mt * DNt
-
-    du[14] = INa - lNa * Na - immo * rB +
-             (rB - eC * rC) * fC * (1 - pC) + ma * B * rB +
-             (alpha_P - eH * rH) * fH * pH
-
-
-end
-
-")
-
-
 
 
 
@@ -1116,9 +1056,6 @@ Compute_ode <- function(state, param, TRESH = 1e-5, method_ode = "lsoda",
         prob <- julia_eval("ODEProblem(ode_metaecosystem_feedback_no_A_to_T_topconsumers, state, tspan, p)")
     }
 
-    if (type_ode == "flexible_stoi") {
-        prob <- julia_eval("ODEProblem(ode_metaecosystem_flexible_stoichio, state, tspan, p)")
-    }
 
     sol <- de$solve(prob, de$Tsit5())
     d <- as.data.frame(t(sapply(sol$u, identity)))

@@ -9,15 +9,15 @@ Contact: Benoît Pichon, *benoit.pichon0@gmail.com*
 </p>
 
 
-This folder contains all code necessary to replicate the analysis in the main text and in supplementary. 
+This folder contains all code necessary to replicate the analysis in the main and supplementary text. 
 
 ## `Data`
 
-The **`Empirical_data`** contains four *csv* files necessary to reproduce the Figure 1. 
+The **`Empirical_data`** contains four *csv* files necessary to reproduce Figure 1. 
 
-1. The first csv, **`List_papers.csv`**, correspond to the list of papers from which data have been collected. 
+1. The first csv, **`List_papers.csv`**, corresponds to the list of papers from which data have been collected. 
    
-2. The second (**`N_flows_Aq_Terr.csv`**) and the third (**`C_flows_Aq_Terr.csv`**) one contain the nitrogen and carbon flows at terrestrial-freshwater ecotone respectively. 
+2. The second (**`N_flows_Aq_Terr.csv`**) and the third (**`C_flows_Aq_Terr.csv`**) contain the nitrogen and carbon flows at terrestrial-freshwater ecotone respectively. 
    
 3. Finally, the last *csv* contains the stoichiometric ratio of fluxes exported at this ecotone (**`Stoichio_NC.csv`**).
 
@@ -26,21 +26,21 @@ The **`Empirical_data`** contains four *csv* files necessary to reproduce the Fi
 
 The simulations are made using R (*v4.1.0*) and Julia (*v1.7.3*). All scripts are written in R, and we call julia via R using the **JuliaCall** R package.
 All simulations are gathered in the file `Stoichio_main.R`.
-This file is organized in different section, with each corresponding to a different Figure (press Alt+O to see the sections). **The numbers are indicated as a code to see which simulation is needed to replicate a given figure.** 
+This file is organized in different section, with each corresponding to a different Figure (press Alt+O to see the sections). **To replicate a specific figure, please look at the sections number in `Stoichio_main.R` and `Make_figs.R`. This code is indicated to see which simulation is needed to replicate a given figure.** 
 All simulations are fast to run (~2h for all analyses) using the functions from Julia. 
 
 
 ## `Figures`
 
-All figures in the main text and in supplementary can be replicated using the `Make_figs.R` file. Each section in the file contain the code to replicate a given figure.
+All figures in the main text and in supplementary can be replicated using the `Make_figs.R` file. Each section in the file contains the code to replicate a given figure. **Before ploting the figures, you need to run the simulations.**
 
-For more details, see the preprint: **Quality matters: stoichiometry of resources modulates spatial feedbacks in aquatic-terrestrial meta-ecosystems. Benoît Pichon, Elisa Thébault, Gérard Lacroix et Isabelle Gounand**.
+For more details, see the paper: **Quality matters: stoichiometry of resources modulates spatial feedbacks in aquatic-terrestrial meta-ecosystems. *Ecology Letters*. Benoît Pichon, Elisa Thébault, Gérard Lacroix et Isabelle Gounand (2023)**.
 
 
 
 ## `Working example`
 
-The model is displayed bellow, it simulates the dynamics of carbon and nitrogen in a meta-ecosystem at terrestrial-aquatic ecotone.
+The model is displayed bellow; it simulates the dynamics of carbon and nitrogen in a meta-ecosystem at terrestrial-aquatic ecotone.
 
 
 

@@ -13,6 +13,8 @@ source("Stoichio_functions.R")
 
 n_point=50;p_coup=1
 param_space=expand.grid(rP=seq(1/10,1/40,length.out=n_point),rB=seq(0.12,0.25,length.out=n_point))
+
+#tibble for all the scenarios explored
 scenario_space=tibble(Name_scena=c("C-limited",'N-limited',"Colimitation"),type_ode=c(rep("full",3)),
                       param_name=c("C-limited","N-limited","Colimitation"),N_time=rep(10000,3),
                       colim=c(F,F,T))
@@ -26,11 +28,14 @@ for (rowspace in 1:nrow(scenario_space)){
   
   for (nr in 1:nrow(param_space)){
     
+    #defining parameters
     param=Get_classical_param(scena = scenario_space$param_name[rowspace],coupling = F)
     param$rP=param_space$rP[nr];param$rB=param_space$rB[nr]
     
+    #getting initial states
     state=Get_initial_values(param)
     
+    #Running the model
     data_save=Compute_ode(state,param,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
     Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
     limit=Get_limitation(Eq$Eq,param)
@@ -43,19 +48,23 @@ for (rowspace in 1:nrow(scenario_space)){
     PP1_recy=Primary_production(Eq$Eq,param,colim)
     PP2_recy=Secondary_production(Eq$Eq,param)
     
+    #aggregating
     d_recy=rbind(d_recy,Eq$Eq%>%add_column(PP1_T=PP1_recy$Terrestrial,PP1_A=PP1_recy$Aquatic,P1_T=P1_recy$Terrestrial,P1_A=P1_recy$Aquatic,
                                            PP2_T=PP2_recy$Terrestrial,PP2_A=PP2_recy$Aquatic,P2_T=P2_recy$Terrestrial,P2_A=P2_recy$Aquatic,
                                            rP=param$rP,rB=param$rB,Phi=param$pB))
     
+    #running the model with spatial flows
     param[c("pH",'pC',"pP","pB")]=p_coup #we set delta_X=1 (what I also called phi)
     
     data_save=Compute_ode(state,param,n_time = scenario_space$N_time[rowspace],type_ode = scenario_space$type_ode[rowspace])
     Eq=Extract_equilibrium_from_dynamics(data_save,param) #Equilibrium
     limit=Get_limitation(Eq$Eq,param)
     
+    
+    # Getting ecosystem productions and meta-ecosystem functioning metrics
+    
     P1=Primary_productivity(Eq$Eq,param,colim);P2=Secondary_productivity(Eq$Eq,param) #productivity
     PP1=Primary_production(Eq$Eq,param,colim);PP2=Secondary_production(Eq$Eq,param) #production
-    
     Metric_metaecosyst=LRR_meta_ecosystem(P1,P2,P1_recy,P2_recy,PP1,PP2,PP1_recy,PP2_recy)
     
     
@@ -63,7 +72,7 @@ for (rowspace in 1:nrow(scenario_space)){
     net_flow=Net_flow_nitrogen(Eq$Eq,param)
     
     
-    #dataframe addition
+    #merging dataframes
     d2=rbind(d2,Eq$Eq %>% add_column(Phi=p_coup,Ratio=Get_limitation(Eq$Eq,param)$Ratio,
                                      P1_T=P1$Terrestrial,P1_A=P1$Aquatic,P2_T=P2$Terrestrial,P2_A=P2$Aquatic,P1_A_tot=P1$Aqua_tot,
                                      PP1_T=PP1$Terrestrial,PP1_A=PP1$Aquatic,PP2_T=PP2$Terrestrial,PP2_A=PP2$Aquatic,PP1_A_tot=PP1$Aqua_tot,
@@ -191,6 +200,8 @@ Extract_equilibrium_from_dynamics=function(data,param,consumers=F){
   
   n_begin=ifelse(consumers,19,15)
   
+  #here we do the mean on the last 30000 values to have very precise values.
+  #for the feedback measure it is important to have smooth lines
   data_mean=as_tibble(t(colMeans(data[(nrow(data)-30000):nrow(data),-1])))
   data_with_param=cbind(data_mean,matrix(unlist(param),ncol = length(param),nrow=1))
   colnames(data_with_param)[n_begin:ncol(data_with_param)]=names(param)
@@ -215,13 +226,16 @@ for (s in c("C-limited",'N-limited',"Colimitation")){
       
       limit_ratio=Get_limitation(Eq$Eq,param)
       
+      #EXtract ecosystems functioning metrics
       P1_bidirectional=Primary_production(Eq$Eq,param)
       P2_bidirectional=Secondary_production(Eq$Eq,param)
       
+      
+      #Computing the feedbacks on each ecosystem see the function for details
       feedback=Compute_feedbacks(Eq$Eq,param,type_prod = "Production",n_time=60000)
       
       
-      
+      #Aggregating the dataframes
       d2=rbind(d2,Eq$Eq %>% add_column(Phi=p, Feedback_T_1=feedback$Net_T_1,Feedback_A_1=feedback$Net_A_1,
                                        Feedback_T_2=feedback$Net_T_2,Feedback_A_2=feedback$Net_A_2,Scenario=s,
                                        P1_bidirec_T=P1_bidirectional$Terrestrial,P1_bidirec_A=P1_bidirectional$Aquatic,

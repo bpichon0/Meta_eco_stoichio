@@ -1,8 +1,6 @@
 rm(list=ls())
 
 source("Stoichio_functions.R")
-dir.create("./Figures/",showWarnings = F)
-dir.create("./Figures/SI",showWarnings = F)
 
 the_theme=theme_classic()+theme(legend.position = "bottom",
                                 strip.background = element_rect(fill = "#CCE8D8"),
